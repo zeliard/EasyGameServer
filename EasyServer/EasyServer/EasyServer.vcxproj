@@ -81,12 +81,14 @@
   <ItemGroup>
     <ClInclude Include="..\..\PacketType.h" />
     <ClInclude Include="CircularBuffer.h" />
+    <ClInclude Include="ClientManager.h" />
     <ClInclude Include="ClientSession.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CircularBuffer.cpp" />
+    <ClCompile Include="ClientManager.cpp" />
     <ClCompile Include="ClientSession.cpp" />
     <ClCompile Include="EasyServer.cpp" />
     <ClCompile Include="stdafx.cpp">

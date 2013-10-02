@@ -28,6 +28,9 @@
     <ClInclude Include="ClientSession.h">
       <Filter>SourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="ClientManager.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -40,6 +43,9 @@
       <Filter>SourceCode</Filter>
     </ClCompile>
     <ClCompile Include="ClientSession.cpp">
+      <Filter>SourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientManager.cpp">
       <Filter>SourceCode</Filter>
     </ClCompile>
   </ItemGroup>

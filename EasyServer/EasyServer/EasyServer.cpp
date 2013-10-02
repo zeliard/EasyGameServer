@@ -5,20 +5,20 @@
 
 #include "..\..\PacketType.h"
 #include "ClientSession.h"
+#include "ClientManager.h"
 
 #pragma comment(lib,"ws2_32.lib")
 
 
 SOCKET g_AcceptedSocket = NULL ;
 
-
-
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam ) ;
-
-
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	/// Manager Init
+	GClientManager = new ClientManager ;
+
 	/// 윈속 초기화
 	WSADATA wsa ;
 	if (WSAStartup(MAKEWORD(2,2), &wsa) != 0)
@@ -79,6 +79,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	// 윈속 종료
 	WSACleanup() ;
+
+	delete GClientManager ;
 	return 0 ;
 }
 
@@ -95,9 +97,9 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 		{
 	
 			/// 소켓 정보 구조체 할당과 초기화
-			ClientSession* client = new ClientSession(g_AcceptedSocket, ++g_ClientIndex) ;
-			g_ClientList.insert(ClientList::value_type(g_AcceptedSocket, client)) ;
-
+			
+			ClientSession* client = GClientManager->CreateClient(g_AcceptedSocket) ;
+			
 			SOCKADDR_IN clientaddr ;
 			int addrlen = sizeof(clientaddr) ;
 			getpeername(g_AcceptedSocket, (SOCKADDR*)&clientaddr, &addrlen) ;
@@ -106,7 +108,7 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 			if ( false == client->OnConnect(&clientaddr) )
 			{
 				client->Disconnect() ;
-				delete client ;
+				GClientManager->DeleteClient(client) ;
 			}
 		
 			continue ; ///< 다시 대기로

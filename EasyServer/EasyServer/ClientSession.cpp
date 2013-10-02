@@ -1,9 +1,7 @@
 #include "stdafx.h"
 #include "ClientSession.h"
 #include "..\..\PacketType.h"
-
-ClientList g_ClientList ;
-int g_ClientIndex = 0 ;
+#include "ClientManager.h"
 
 
 bool ClientSession::OnConnect(SOCKADDR_IN* addr)
@@ -60,8 +58,6 @@ void ClientSession::Disconnect()
 
 	::shutdown(mSocket, SD_BOTH) ;
 	::closesocket(mSocket) ;
-
-	g_ClientList.erase(mSocket) ;
 	
 }
 
@@ -95,7 +91,7 @@ void ClientSession::OnRead(size_t len)
 				outPacket.mResult = true ;
 				outPacket.mPlayerId = inPacket.mPlayerId + 10000 ;
 				
-				Send(&outPacket) ;
+				GClientManager->BroadcastPacket(&outPacket) ;
 
 			}
 			break ;
@@ -113,7 +109,7 @@ void ClientSession::OnRead(size_t len)
 			{
 				/// 여기 들어오면 이상한 패킷 보낸거다.
 				Disconnect() ;
-				delete this ;
+				GClientManager->DeleteClient(this) ;
 				return ;
 			}
 			break ;
@@ -128,6 +124,7 @@ bool ClientSession::Send(PacketHeader* pkt)
 	if ( false == mSendBuffer.Write((char*)pkt, pkt->mSize) )
 	{
 		Disconnect() ;
+		GClientManager->DeleteClient(this) ;
 		return false ;
 	}
 
@@ -137,6 +134,7 @@ bool ClientSession::Send(PacketHeader* pkt)
 		/// 방금전에 write 했는데, 데이터가 없다면 뭔가 잘못된 것
 		assert(false) ;
 		Disconnect() ;
+		GClientManager->DeleteClient(this) ;
 		return false ;
 	}
 		
@@ -183,7 +181,7 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( dwError || cbTransferred == 0 )
 	{
 		fromClient->Disconnect() ;
-		delete fromClient ;
+		GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 
@@ -194,7 +192,7 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( false == fromClient->PostRecv() )
 	{
 		fromClient->Disconnect() ;
-		delete fromClient ;
+		GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 }
@@ -208,7 +206,7 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( dwError || cbTransferred == 0 )
 	{
 		fromClient->Disconnect() ;
-		delete fromClient ;
+		GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 

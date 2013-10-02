@@ -7,6 +7,7 @@
 
 #define BUFSIZE	(1024*10)
 class ClientSession ;
+class ClientManager ;
 
 struct OverlappedIO : public OVERLAPPED
 {
@@ -49,11 +50,12 @@ private:
 
 	OverlappedIO	mOverlappedSend ;
 	OverlappedIO	mOverlappedRecv ;
+
+	friend class ClientManager ;
 } ;
 
-typedef std::map<SOCKET, ClientSession*> ClientList ;
-extern ClientList g_ClientList ;
-extern int g_ClientIndex ;
+
+
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags) ;
 void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags) ;
