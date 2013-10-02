@@ -27,6 +27,7 @@ bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 
 	}
 
+	mConnected = true ;
 	return ok ;
 }
 
@@ -58,7 +59,8 @@ void ClientSession::Disconnect()
 
 	::shutdown(mSocket, SD_BOTH) ;
 	::closesocket(mSocket) ;
-	
+
+	mConnected= false ;
 }
 
 
@@ -92,11 +94,7 @@ void ClientSession::OnRead(size_t len)
 				outPacket.mPlayerId = inPacket.mPlayerId + 10000 ;
 				
 				if ( !Broadcast(&outPacket) )
-				{
-					GClientManager->DeleteClient(this) ;
 					return ;
-				}
-	
 			}
 			break ;
 		case PKT_TEST:
@@ -113,7 +111,6 @@ void ClientSession::OnRead(size_t len)
 			{
 				/// 여기 들어오면 이상한 패킷 보낸거다.
 				Disconnect() ;
-				GClientManager->DeleteClient(this) ;
 				return ;
 			}
 			break ;
@@ -188,9 +185,9 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
-
+	
 	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 )
+	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
 	{
 		fromClient->Disconnect() ;
 		GClientManager->DeleteClient(fromClient) ;
@@ -204,7 +201,6 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( false == fromClient->PostRecv() )
 	{
 		fromClient->Disconnect() ;
-		GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 }
@@ -215,7 +211,7 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
 
 	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 )
+	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
 	{
 		fromClient->Disconnect() ;
 		GClientManager->DeleteClient(fromClient) ;

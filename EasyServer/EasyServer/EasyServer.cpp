@@ -108,7 +108,6 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 			if ( false == client->OnConnect(&clientaddr) )
 			{
 				client->Disconnect() ;
-				GClientManager->DeleteClient(client) ;
 			}
 		
 			continue ; ///< 다시 대기로

@@ -21,7 +21,7 @@ class ClientSession
 {
 public:
 	ClientSession(SOCKET sock, int idx)
-		: mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE)
+		: mConnected(false), mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
 	}
@@ -40,8 +40,10 @@ public:
 
 	void	Disconnect() ;
 
+	bool	IsConnected() const { return mConnected ; }
 
 private:
+	bool			mConnected ;
 	SOCKET			mSocket ;
 
 	int				mClientId ;
