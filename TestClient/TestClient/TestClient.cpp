@@ -70,7 +70,7 @@ bool Connect(const char* serverAddr, int port)
 }
 
 /// 패킷처리 
-void ProcessPacket()
+void ProcessPacket(HWND hWnd)
 {
 	while ( true )
 	{
@@ -110,7 +110,14 @@ void ProcessPacket()
 					// 패킷처리
 					assert( recvData.mResult ) ;
 					assert( recvData.mPlayerId >= 10000 ) ;
-					OutputDebugStringA(recvData.mData) ;
+
+					static int ypos = 33 ;
+					HDC hdc = GetDC(hWnd) ;
+					TextOutA(hdc, 10, ypos, recvData.mData, strlen(recvData.mData)) ;
+					ReleaseDC(hWnd, hdc) ;
+					ypos += 15 ;
+					if ( ypos > 600 )
+						ypos = 33 ;
 				}
 				else
 				{
@@ -240,7 +247,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 100, 200, NULL, NULL, hInstance, NULL);
+      CW_USEDEFAULT, 0, 600, 700, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
    {
@@ -311,29 +318,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 			case IDC_SEND_BUTTON:
 			{
-				static int pId = 1 ;
-				TestPing sendData ;
-				sendData.mPlayerId = pId++ ;
-				sendData.mPosX = rand() ;
-				sendData.mPosY = rand() ;
-				sendData.mPosZ = rand() ;
-
-			/*				
-				TestEchoPacket sendData ;
-				sendData.mPlayerId = pId++ ;
-				sendData.mPosX = rand() ;
-				sendData.mPosY = rand() ;
-				sendData.mPosZ = rand() ;
-				
-				for ( int i=0 ; i <1024 ; ++i)
-					sendData.mData[i] = 65 + i % 26 ;
-
-				sendData.mData[1022] = '\n' ;
-				sendData.mData[1023] = '\0' ;
-			*/
-				if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+				for (int i=0 ; i<100 ; ++i)
 				{
-					PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+					static int pId = 1 ;
+					TestPing sendData ;
+					sendData.mPlayerId = pId++ ;
+					sendData.mPosX = rand() ;
+					sendData.mPosY = rand() ;
+					sendData.mPosZ = rand() ;
+
+					if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+					{
+						PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+					}
 				}
 			}
 			break;
@@ -384,7 +381,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						assert(false) ;
 					}
 					
-					ProcessPacket() ;
+					ProcessPacket(hWnd) ;
 					
 				}
 				break;
