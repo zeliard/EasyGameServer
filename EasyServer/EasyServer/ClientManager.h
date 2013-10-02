@@ -15,7 +15,7 @@ public:
 	ClientSession* CreateClient(SOCKET sock) ;
 	void DeleteClient(ClientSession* client) ;
 
-	void BroadcastPacket(PacketHeader* pkt) ;
+	void BroadcastPacket(ClientSession* from, PacketHeader* pkt) ;
 
 private:
 	typedef std::map<SOCKET, ClientSession*> ClientList ;

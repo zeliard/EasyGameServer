@@ -36,6 +36,8 @@ public:
 	bool	PostRecv() ;
 
 	bool	Send(PacketHeader* pkt) ;
+	bool	Broadcast(PacketHeader* pkt) ;
+
 	void	Disconnect() ;
 
 

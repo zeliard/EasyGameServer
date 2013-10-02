@@ -91,8 +91,12 @@ void ClientSession::OnRead(size_t len)
 				outPacket.mResult = true ;
 				outPacket.mPlayerId = inPacket.mPlayerId + 10000 ;
 				
-				GClientManager->BroadcastPacket(&outPacket) ;
-
+				if ( !Broadcast(&outPacket) )
+				{
+					GClientManager->DeleteClient(this) ;
+					return ;
+				}
+	
 			}
 			break ;
 		case PKT_TEST:
@@ -124,7 +128,6 @@ bool ClientSession::Send(PacketHeader* pkt)
 	if ( false == mSendBuffer.Write((char*)pkt, pkt->mSize) )
 	{
 		Disconnect() ;
-		GClientManager->DeleteClient(this) ;
 		return false ;
 	}
 
@@ -134,7 +137,6 @@ bool ClientSession::Send(PacketHeader* pkt)
 		/// 방금전에 write 했는데, 데이터가 없다면 뭔가 잘못된 것
 		assert(false) ;
 		Disconnect() ;
-		GClientManager->DeleteClient(this) ;
 		return false ;
 	}
 		
@@ -169,6 +171,16 @@ void ClientSession::OnWriteComplete(size_t len)
 		assert(false) ;
 	}
 
+}
+
+bool ClientSession::Broadcast(PacketHeader* pkt)
+{
+	if ( !Send(pkt) )
+		return false ;
+
+	GClientManager->BroadcastPacket(this, pkt) ;
+
+	return true ;
 }
 
 ///////////////////////////////////////////////////////////
