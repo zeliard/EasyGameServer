@@ -360,6 +360,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 			case FD_CONNECT:
 				{
+					/// NAGLE ²ö´Ù
+					int opt = 1 ;
+					::setsockopt(g_Socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) ;
+
 					int nResult=WSAAsyncSelect(g_Socket, hWnd, WM_SOCKET, (FD_CLOSE|FD_READ|FD_WRITE) ) ;
 					if (nResult)
 					{
