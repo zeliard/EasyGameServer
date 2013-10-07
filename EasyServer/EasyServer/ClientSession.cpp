@@ -17,7 +17,8 @@ bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 	::setsockopt(mSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) ;
 
 	printf("[DEBUG] Client Connected: IP=%s, PORT=%d\n", inet_ntoa(mClientAddr.sin_addr), ntohs(mClientAddr.sin_port)) ;
-
+	
+	mConnected = true ;
 
 	bool ok = PostRecv() ;
 
@@ -27,12 +28,15 @@ bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 
 	}
 
-	mConnected = true ;
+	
 	return ok ;
 }
 
 bool ClientSession::PostRecv()
 {
+	if ( !IsConnected() )
+		return false ;
+
 	DWORD recvbytes = 0 ;
 	DWORD flags = 0 ;
 	WSABUF buf ;
@@ -120,7 +124,9 @@ void ClientSession::OnRead(size_t len)
 
 bool ClientSession::Send(PacketHeader* pkt)
 {
-	
+	if ( !IsConnected() )
+		return false ;
+
 	/// 버퍼 용량 부족인 경우는 끊어버림
 	if ( false == mSendBuffer.Write((char*)pkt, pkt->mSize) )
 	{
@@ -175,6 +181,9 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 	if ( !Send(pkt) )
 		return false ;
 
+	if ( !IsConnected() )
+		return false ;
+
 	GClientManager->BroadcastPacket(this, pkt) ;
 
 	return true ;
@@ -190,7 +199,7 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
 	{
 		fromClient->Disconnect() ;
-		GClientManager->DeleteClient(fromClient) ;
+		//GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 
@@ -214,7 +223,7 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
 	{
 		fromClient->Disconnect() ;
-		GClientManager->DeleteClient(fromClient) ;
+		//GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 
