@@ -7,6 +7,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <assert.h>
+#include <stdio.h>
 
 
 #include "..\..\PacketType.h"
@@ -29,6 +30,8 @@ CircularBuffer g_RecvBuffer(BUFSIZE) ;
 char* szServer = "localhost" ;
 int nPort = 9001 ;
 
+/// 서버에서 받아온 나의 ID 
+int g_MyClientId = -1 ; 
 
 bool Initialize()
 {
@@ -84,24 +87,6 @@ void ProcessPacket(HWND hWnd)
 
 		switch ( header.mType )
 		{
-		case PKT_TEST:
-			{
-				TestEchoPacket recvData ;
-				if ( g_RecvBuffer.Read((char*)&recvData, header.mSize) )
-				{
-					// 패킷처리
-					recvData.mPlayerId ;
-					recvData.mPosX ;
-					recvData.mPosY ;
-					recvData.mPosZ ;
-					OutputDebugStringA(recvData.mData) ;
-				}
-				else
-				{
-					assert(false) ;
-				}
-			}
-			break ;
 		case PKT_SC_PONG:
 			{
 				TestPong recvData ;
@@ -109,8 +94,8 @@ void ProcessPacket(HWND hWnd)
 				{
 					// 패킷처리
 					assert( recvData.mResult ) ;
-					assert( recvData.mPlayerId >= 10000 ) ;
-
+					g_MyClientId = recvData.mPlayerId ;
+				
 					static int ypos = 33 ;
 					HDC hdc = GetDC(hWnd) ;
 					TextOutA(hdc, 10, ypos, recvData.mData, strlen(recvData.mData)) ;
@@ -132,11 +117,20 @@ void ProcessPacket(HWND hWnd)
 				if ( g_RecvBuffer.Read((char*)&recvData, header.mSize) )
 				{
 					// 패킷처리
-					recvData.mResult ;
-					recvData.mPlayerId ;
-					recvData.mPosX ;
-					recvData.mPosY ;
-					recvData.mPosZ ;
+					assert( recvData.mResult ) ;
+					g_MyClientId = recvData.mPlayerId ;
+
+					char buff[128] = {0, } ;
+					sprintf_s(buff, "SC_PONG2 from Client[%d], %.4f, %.4f, %.4f \n", g_MyClientId, recvData.mPosX, recvData.mPosY, recvData.mPosZ ) ;
+
+					static int y2pos = 33 ;
+					HDC hdc = GetDC(hWnd) ;
+					TextOutA(hdc, 500, y2pos, buff, strlen(buff)) ;
+					ReleaseDC(hWnd, hdc) ;
+					y2pos += 15 ;
+					if ( y2pos > 600 )
+						y2pos = 33 ;
+					
 				}
 				else
 				{
@@ -247,7 +241,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // 인스턴스 핸들을 전역 변수에 저장합니다.
 
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, 600, 700, NULL, NULL, hInstance, NULL);
+      CW_USEDEFAULT, 0, 1000, 700, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
    {
@@ -282,8 +276,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CREATE:
 		{
 			// Create a push button
-			CreateWindow(L"BUTTON", L"Send", WS_TABSTOP|WS_VISIBLE|WS_CHILD|BS_DEFPUSHBUTTON,
-						10,	10, 75, 23, hWnd, (HMENU)IDC_SEND_BUTTON, GetModuleHandle(NULL), NULL);
+			CreateWindow(L"BUTTON", L"Send ON/OFF Toggle", WS_TABSTOP|WS_VISIBLE|WS_CHILD|BS_DEFPUSHBUTTON,
+						10,	10, 175, 23, hWnd, (HMENU)IDC_SEND_BUTTON, GetModuleHandle(NULL), NULL);
 
 			if ( false == Initialize() )
 			{
@@ -308,7 +302,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
-	case WM_COMMAND:
+		case WM_TIMER:
+		{
+			if ( rand() % 2 == 0 )
+			{
+				TestPing sendData ;
+				sendData.mPlayerId = g_MyClientId ;
+				sendData.mPosX = rand() ;
+				sendData.mPosY = rand() ;
+				sendData.mPosZ = rand() ;
+
+				if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+				{
+					PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+				}
+			}
+			else
+			{
+				TestPing2 sendData ;
+				sendData.mPlayerId = g_MyClientId ;
+				sendData.mPosX = rand() ;
+				sendData.mPosY = rand() ;
+				sendData.mPosZ = rand() ;
+				sprintf_s(sendData.mData , "CS_PING2 client[%d], %.4f, %.4f, %.4f \n", g_MyClientId, sendData.mPosX, sendData.mPosY, sendData.mPosZ ) ;
+
+				if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+				{
+					PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+				}
+			}
+			
+		}
+		break ;
+
+		case WM_COMMAND:
 		{
 			wmId    = LOWORD(wParam);
 			wmEvent = HIWORD(wParam);
@@ -318,20 +345,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 			case IDC_SEND_BUTTON:
 			{
-				for (int i=0 ; i<100 ; ++i)
-				{
-					static int pId = 1 ;
-					TestPing sendData ;
-					sendData.mPlayerId = pId++ ;
-					sendData.mPosX = rand() ;
-					sendData.mPosY = rand() ;
-					sendData.mPosZ = rand() ;
+				static bool timerToggle = false ;
 
-					if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
-					{
-						PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
-					}
+				if ( !timerToggle )
+				{
+					/// 100ms 마다  WM_TIMER발생 시키기
+					SetTimer(hWnd, 337, 100, NULL) ;
+					timerToggle = true ;
 				}
+				else
+				{
+					KillTimer(hWnd, 337) ;
+					timerToggle = false ;
+				}
+
 			}
 			break;
 
