@@ -4,10 +4,13 @@
 enum PacketTypes
 {
 	PKT_NONE	= 0,
+	
 	PKT_CS_PING	= 1,
 	PKT_SC_PONG	= 2,
-	PKT_SC_PONG2= 3,
-	PKT_TEST	= 0xFF
+	
+	PKT_CS_PING2= 3,
+	PKT_SC_PONG2= 4,
+	
 } ;
 
 #pragma pack(push, 1)
@@ -19,26 +22,6 @@ struct PacketHeader
 	short mType ;
 } ;
 
-
-struct TestEchoPacket : public PacketHeader
-{
-	TestEchoPacket()
-	{
-		mSize = sizeof(TestEchoPacket) ;
-		mType = PKT_TEST ;
-		mPlayerId = -1 ;
-		mPosX = 0 ;
-		mPosY = 0 ;
-		mPosZ = 0 ;
-		memset(mData, 0, 1024) ;
-	}
-
-	int	mPlayerId ;
-	char mData[1024] ;
-	float mPosX ;
-	float mPosY ;
-	float mPosZ ;
-} ;
 
 
 struct TestPing : public PacketHeader
@@ -72,6 +55,26 @@ struct TestPong : public PacketHeader
 	int	mPlayerId ;
 	char mData[1024] ;
 	bool mResult ;
+} ;
+
+struct TestPing2 : public PacketHeader
+{
+	TestPing2()
+	{
+		mSize = sizeof(TestPing2) ;
+		mType = PKT_CS_PING2 ;
+		mPlayerId = -1 ;
+		mPosX = 0 ;
+		mPosY = 0 ;
+		mPosZ = 0 ;
+		memset(mData, 0, 1024) ;
+	}
+
+	int	mPlayerId ;
+	char mData[1024] ;
+	float mPosX ;
+	float mPosY ;
+	float mPosZ ;
 } ;
 
 struct TestPong2 : public PacketHeader

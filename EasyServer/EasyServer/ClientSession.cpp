@@ -95,20 +95,31 @@ void ClientSession::OnRead(size_t len)
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 				
 				TestPong outPacket ;
-				sprintf_s(outPacket.mData, "[REPLY] CS_PING: %d, %f, %f, %f \n", inPacket.mPlayerId, inPacket.mPosX, inPacket.mPosY, inPacket.mPosZ ) ;
+				sprintf_s(outPacket.mData, "[CLIENT] CS_PING: %d, %f, %f, %f \n", inPacket.mPlayerId, inPacket.mPosX, inPacket.mPosY, inPacket.mPosZ ) ;
 				outPacket.mResult = true ;
-				outPacket.mPlayerId = inPacket.mPlayerId + 10000 ;
+				outPacket.mPlayerId = mClientId ;
 				
 				if ( !Broadcast(&outPacket) )
 					return ;
 			}
 			break ;
-		case PKT_TEST:
+
+		case PKT_CS_PING2:
 			{
-				TestEchoPacket inPacket ;
+				TestPing2 inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 
-				printf("[DEBUG] PKT_TEST: %d, %s \n", inPacket.mPlayerId, inPacket.mData ) ;
+				printf("[CLIENT] PKT_CS_PING2: %d, %s \n", inPacket.mPlayerId, inPacket.mData ) ;
+				
+				TestPong2 outPacket ;
+				outPacket.mPlayerId = mClientId ;
+				outPacket.mPosX = 0.1111f + inPacket.mPosX ;
+				outPacket.mPosY = 0.2222f + inPacket.mPosY ;
+				outPacket.mPosZ = 0.3333f + inPacket.mPosZ ;
+				outPacket.mResult = true ;
+
+				if ( !Send(&outPacket) )
+					return ;
  
 			}
 			break ;
