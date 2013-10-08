@@ -13,6 +13,7 @@
 SOCKET g_AcceptedSocket = NULL ;
 
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam ) ;
+void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighValue) ;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -56,7 +57,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	HANDLE hThread = (HANDLE)_beginthreadex (NULL, 0, ClientHandlingThread, hEvent, 0, (unsigned int*)&dwThreadId) ;
     if (hThread == NULL)
 		return -1 ;
-	    
+
+
 	/// accept loop
 	while ( true )
 	{
@@ -87,9 +89,21 @@ int _tmain(int argc, _TCHAR* argv[])
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 { 
 	HANDLE hEvent = (HANDLE)lpParam ;
+
+	/// Timer
+	HANDLE hTimer = CreateWaitableTimer(NULL, FALSE, NULL) ;
+	if (hTimer == NULL)
+		return -1 ;
+
+	LARGE_INTEGER liDueTime ;
+	liDueTime.QuadPart = -10000000 ; ///< 1초 후부터 동작
+	if ( !SetWaitableTimer(hTimer, &liDueTime, 100, TimerProc, NULL, TRUE) )
+		return -1 ;
+		
+
 	while ( true )
 	{
-		/// accept or completion 대기
+		/// accept or IO/Timer completion   대기
 		DWORD result = WaitForSingleObjectEx(hEvent, INFINITE, TRUE) ;
 
 		/// client connected
@@ -121,3 +135,8 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 	return 0;
 } 
 
+void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighValue)
+{
+	 GClientManager->OnPeriodWork() ;
+	 
+}

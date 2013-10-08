@@ -58,13 +58,15 @@ bool ClientSession::PostRecv()
 
 void ClientSession::Disconnect()
 {
+	if ( !IsConnected() )
+		return ;
 
 	printf("[DEBUG] Client Disconnected: IP=%s, PORT=%d\n", inet_ntoa(mClientAddr.sin_addr), ntohs(mClientAddr.sin_port)) ;
 
 	::shutdown(mSocket, SD_BOTH) ;
 	::closesocket(mSocket) ;
 
-	mConnected= false ;
+	mConnected = false ;
 }
 
 
@@ -195,11 +197,13 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
 	
+	if ( !fromClient->IsConnected() )
+		return ;
+
 	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
+	if ( dwError || cbTransferred == 0 )
 	{
 		fromClient->Disconnect() ;
-		//GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 
@@ -219,11 +223,13 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
 
+	if ( !fromClient->IsConnected() )
+		return ;
+
 	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 || !fromClient->IsConnected() )
+	if ( dwError || cbTransferred == 0 )
 	{
 		fromClient->Disconnect() ;
-		//GClientManager->DeleteClient(fromClient) ;
 		return ;
 	}
 

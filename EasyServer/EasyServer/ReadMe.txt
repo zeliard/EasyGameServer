@@ -4,12 +4,6 @@
 
 * TODO
 
-- ClientSession은 풀로 구성하고 처리
--- RecvCompletion, SendCompletion시에 끊겨진 클라이언트 관련 버그 처리 (지워진 포인터)
---- send쪽 disconnect시.. deleteclient 안되는 문제.
---- clientsession delete는 disconnect  마킹 되면 3분 후에 알아서 collection하는걸로 할까?
-----> ClientManager에 타이머 넣기?
-
 
 - 부하 테스트가 가능한 클라이언트 작업
 

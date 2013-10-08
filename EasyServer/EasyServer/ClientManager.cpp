@@ -16,11 +16,7 @@ ClientSession* ClientManager::CreateClient(SOCKET sock)
 	return client ;
 }
 
-void ClientManager::DeleteClient(ClientSession* client)
-{
-	mClientList.erase(client->mSocket) ;
-	delete client ;
-}
+
 
 void ClientManager::BroadcastPacket(ClientSession* from, PacketHeader* pkt)
 {
@@ -34,4 +30,37 @@ void ClientManager::BroadcastPacket(ClientSession* from, PacketHeader* pkt)
 		
 		client->Send(pkt) ;
 	}
+}
+
+void ClientManager::OnPeriodWork()
+{
+	/// 접속이 끊긴 세션들 주기적으로 정리 (1초 정도 마다 해주자)
+	DWORD currTick = GetTickCount() ;
+	if ( currTick - mLastGCTick >= 1000 )
+	{
+		CollectGarbageSessions() ;
+		mLastGCTick = currTick ;
+	}
+		
+}
+
+void ClientManager::CollectGarbageSessions()
+{
+	std::vector<ClientSession*> disconnectedSessions ;
+
+	for (auto it=mClientList.begin() ; it!=mClientList.end() ; ++it)
+	{
+		ClientSession* client = it->second ;
+
+		if ( false == client->IsConnected() )
+			disconnectedSessions.push_back(client) ;
+	}
+
+	for (size_t i=0 ; i<disconnectedSessions.size() ; ++i)
+	{
+		ClientSession* client = disconnectedSessions[i] ;
+		mClientList.erase(client->mSocket) ;
+		delete client ;
+	}
+
 }
