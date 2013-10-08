@@ -4,11 +4,13 @@
 
 * TODO
 
-- 부하 테스트가 가능한 클라이언트 작업
+- C++ 11 friendly 하게 바꾸기
 
 
-- DB처리 스레드 넣기
--- half-sync half-async형태로 처리 가능하도록?
+- 쓰레드간 큐 만들기
+-- DB처리 스레드 넣기
+--- 기본적으로 무한 루프인데 polling 형태로? 아니면 event wait 형태로?
+--- half-sync half-async형태로 처리 가능하도록?
 
 
 
