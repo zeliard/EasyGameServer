@@ -86,7 +86,7 @@ void ClientSession::OnRead(size_t len)
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 				
 				TestPong outPacket ;
-				sprintf_s(outPacket.mData, "[CLIENT] CS_PING: %d, %f, %f, %f \n", inPacket.mPlayerId, inPacket.mPosX, inPacket.mPosY, inPacket.mPosZ ) ;
+				sprintf_s(outPacket.mData, "SC_PONG Broadcast fromClient[%d]: %.4f, %.4f, %.4f \n", inPacket.mPlayerId, inPacket.mPosX, inPacket.mPosY, inPacket.mPosZ ) ;
 				outPacket.mResult = true ;
 				outPacket.mPlayerId = mClientId ;
 				
@@ -101,7 +101,7 @@ void ClientSession::OnRead(size_t len)
 				TestPing2 inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 
-				printf("[CLIENT] PKT_CS_PING2: %d, %s \n", inPacket.mPlayerId, inPacket.mData ) ;
+				//printf("[CLIENT] %s \n", inPacket.mData ) ;
 				
 				TestPong2 outPacket ;
 				outPacket.mPlayerId = mClientId ;
