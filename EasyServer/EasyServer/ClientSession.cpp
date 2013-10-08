@@ -20,16 +20,7 @@ bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 	
 	mConnected = true ;
 
-	bool ok = PostRecv() ;
-
-	if ( ok )
-	{
-		/// 여기에 클라에게 접속시 뭐 통보할 것 있으면 넣는다
-
-	}
-
-	
-	return ok ;
+	return PostRecv() ;
 }
 
 bool ClientSession::PostRecv()
@@ -99,6 +90,7 @@ void ClientSession::OnRead(size_t len)
 				outPacket.mResult = true ;
 				outPacket.mPlayerId = mClientId ;
 				
+				/// CS_PING 오면 모든 접속중인 클라에게 방송하는 것 테스트
 				if ( !Broadcast(&outPacket) )
 					return ;
 			}
@@ -118,6 +110,7 @@ void ClientSession::OnRead(size_t len)
 				outPacket.mPosZ = 0.3333f + inPacket.mPosZ ;
 				outPacket.mResult = true ;
 
+				/// CS_PING2 오면 위치만 좀 바꿔서 reply 하는 것 테스트
 				if ( !Send(&outPacket) )
 					return ;
  
@@ -205,7 +198,7 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 void ClientSession::OnTick()
 {
 	/// 클라별로 주기적으로 해야될 일은 여기에
-	printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
+	//printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
 }
 
 ///////////////////////////////////////////////////////////

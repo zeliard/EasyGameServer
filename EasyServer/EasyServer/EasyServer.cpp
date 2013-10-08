@@ -65,14 +65,14 @@ int _tmain(int argc, _TCHAR* argv[])
 		g_AcceptedSocket = accept(listenSocket, NULL, NULL) ;
 		if ( g_AcceptedSocket == INVALID_SOCKET )
 		{
-			wprintf(L"accept: invalid socket\n") ;
+			printf("accept: invalid socket\n") ;
 			continue ;
 		}
 
 		/// accept event fire!
 		if ( !SetEvent(hEvent) )
 		{
-			wprintf(L"SetEvent error: %d\n",GetLastError()) ;
+			printf("SetEvent error: %d\n",GetLastError()) ;
 			break ;
 		}
 	}
