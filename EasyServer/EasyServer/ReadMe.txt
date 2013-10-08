@@ -4,11 +4,8 @@
 
 * TODO
 
-
 - 부하 테스트가 가능한 클라이언트 작업
 
-
-- Waitable Timer 넣고 ClientSession에 OnTick() 넣기
 
 - DB처리 스레드 넣기
 -- half-sync half-async형태로 처리 가능하도록?

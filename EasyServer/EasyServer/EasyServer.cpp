@@ -77,7 +77,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
-	CloseHandle( hThread );
+	CloseHandle( hThread ) ;
+	CloseHandle( hEvent ) ;
 
 	// 윈속 종료
 	WSACleanup() ;
@@ -132,6 +133,7 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 			return -1 ;
 	}
 
+	CloseHandle( hTimer ) ;
 	return 0;
 } 
 

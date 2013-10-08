@@ -42,6 +42,10 @@ public:
 
 	bool	IsConnected() const { return mConnected ; }
 
+
+private:
+	void	OnTick() ;
+
 private:
 	bool			mConnected ;
 	SOCKET			mSocket ;

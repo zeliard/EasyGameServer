@@ -191,6 +191,12 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 	return true ;
 }
 
+void ClientSession::OnTick()
+{
+	/// 클라별로 주기적으로 해야될 일은 여기에
+	printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
+}
+
 ///////////////////////////////////////////////////////////
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)

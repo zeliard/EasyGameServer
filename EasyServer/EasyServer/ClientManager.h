@@ -9,7 +9,7 @@ struct PacketHeader ;
 class ClientManager
 {
 public:
-	ClientManager() : mClientIndex(0), mLastGCTick(0)
+	ClientManager() : mClientIndex(0), mLastGCTick(0), mLastClientWorkTick(0)
 	{}
 
 	ClientSession* CreateClient(SOCKET sock) ;
@@ -20,6 +20,7 @@ public:
 
 private:
 	void CollectGarbageSessions() ;
+	void ClientPeriodWork() ;
 
 private:
 	typedef std::map<SOCKET, ClientSession*> ClientList ;
@@ -27,6 +28,7 @@ private:
 	int			mClientIndex ;
 
 	DWORD		mLastGCTick ;
+	DWORD		mLastClientWorkTick ;
 } ;
 
 extern ClientManager* GClientManager ;
