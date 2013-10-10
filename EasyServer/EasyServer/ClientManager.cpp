@@ -20,8 +20,8 @@ ClientSession* ClientManager::CreateClient(SOCKET sock)
 
 void ClientManager::BroadcastPacket(ClientSession* from, PacketHeader* pkt)
 {
-
-	for (auto it=mClientList.begin() ; it!=mClientList.end() ; ++it)
+	///FYI: C++ STL iterator 스타일의 루프
+	for (ClientList::const_iterator it=mClientList.begin() ; it!=mClientList.end() ; ++it)
 	{
 		ClientSession* client = it->second ;
 		
@@ -54,15 +54,20 @@ void ClientManager::OnPeriodWork()
 void ClientManager::CollectGarbageSessions()
 {
 	std::vector<ClientSession*> disconnectedSessions ;
+	
+	///FYI: C++ 11 람다를 이용한 스타일
+	std::for_each(mClientList.begin(), mClientList.end(),
+		[&](ClientList::const_reference it)
+		{
+			ClientSession* client = it.second ;
 
-	for (auto it=mClientList.begin() ; it!=mClientList.end() ; ++it)
-	{
-		ClientSession* client = it->second ;
+			if ( false == client->IsConnected() )
+				disconnectedSessions.push_back(client) ;
+		}
+	) ;
+	
 
-		if ( false == client->IsConnected() )
-			disconnectedSessions.push_back(client) ;
-	}
-
+	///FYI: C언어 스타일의 루프
 	for (size_t i=0 ; i<disconnectedSessions.size() ; ++i)
 	{
 		ClientSession* client = disconnectedSessions[i] ;
@@ -74,9 +79,10 @@ void ClientManager::CollectGarbageSessions()
 
 void ClientManager::ClientPeriodWork()
 {
-	for (auto it=mClientList.begin() ; it!=mClientList.end() ; ++it)
+	/// FYI: C++ 11 스타일의 루프
+	for (auto& it : mClientList)
 	{
-		ClientSession* client = it->second ;
+		ClientSession* client = it.second ;
 		client->OnTick() ;
 	}
 }
