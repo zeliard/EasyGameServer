@@ -2,7 +2,7 @@
 #include "ClientSession.h"
 #include "..\..\PacketType.h"
 #include "ClientManager.h"
-
+#include "DatabaseJobManager.h"
 
 bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 {
@@ -199,6 +199,23 @@ void ClientSession::OnTick()
 {
 	/// 클라별로 주기적으로 해야될 일은 여기에
 	//printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
+	
+	//TEST: DB JOB
+	if ( IsConnected() )
+	{
+		DatabaseJobRequest dbRequest ;
+		dbRequest.mSockKey = mSocket ; ///< 소켓을 키로 쓰자
+
+		GDatabaseJobManager->PushDatabaseJobRequest(dbRequest) ;
+	}
+	
+}
+
+void ClientSession::DatabaseJobDone(const DatabaseJobResult& result)
+{
+	//TODO: DB 작업 끝난 처리는 여기에
+	printf("DEBUG: DB JOB DONE. Client[%d] \n", mClientId) ;
+
 }
 
 ///////////////////////////////////////////////////////////

@@ -4,11 +4,9 @@
 
 * TODO
 
-
-- 쓰레드간 큐 만들기
--- DB처리 스레드 넣기
---- 기본적으로 무한 루프인데 polling 형태로? 아니면 event wait 형태로?
---- half-sync half-async형태로 처리 가능하도록?
+-- DB Manager에 DB 작업 하는 부분 넣기
+--- DB Helper 구현
+---- 기본적으로 sqllite 지원으로?
 
 
 

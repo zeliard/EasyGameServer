@@ -2,23 +2,31 @@
 //
 
 #include "stdafx.h"
+#include "EasyServer.h"
 
 #include "..\..\PacketType.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
+#include "DatabaseJobManager.h"
 
 #pragma comment(lib,"ws2_32.lib")
 
 
 SOCKET g_AcceptedSocket = NULL ;
+__declspec(thread) int LThreadType = -1 ;
+
 
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam ) ;
+unsigned int WINAPI DatabaseHandlingThread( LPVOID lpParam ) ;
 void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighValue) ;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	LThreadType = THREAD_MAIN ;
+
 	/// Manager Init
 	GClientManager = new ClientManager ;
+	GDatabaseJobManager = new DatabaseJobManager ;
 
 	/// 윈속 초기화
 	WSADATA wsa ;
@@ -58,6 +66,14 @@ int _tmain(int argc, _TCHAR* argv[])
     if (hThread == NULL)
 		return -1 ;
 
+	/// DB Init
+	if ( false == GDatabaseJobManager->Initialize() )
+		return -1 ;
+
+	/// DB Thread
+	HANDLE hDbThread = (HANDLE)_beginthreadex (NULL, 0, DatabaseHandlingThread, NULL, 0, (unsigned int*)&dwThreadId) ;
+	if (hDbThread == NULL)
+		return -1 ;
 
 	/// accept loop
 	while ( true )
@@ -79,16 +95,22 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	CloseHandle( hThread ) ;
 	CloseHandle( hEvent ) ;
+	CloseHandle( hDbThread ) ;
+
+	GDatabaseJobManager->Finalize() ;
 
 	// 윈속 종료
 	WSACleanup() ;
 
 	delete GClientManager ;
+	delete GDatabaseJobManager ;
 	return 0 ;
 }
 
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
-{ 
+{
+	LThreadType = THREAD_CLIENT ;
+
 	HANDLE hEvent = (HANDLE)lpParam ;
 
 	/// Timer
@@ -137,8 +159,25 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 	return 0;
 } 
 
+unsigned int WINAPI DatabaseHandlingThread( LPVOID lpParam )
+{
+	LThreadType = THREAD_DATABASE ;
+
+	while ( true )
+	{
+		/// 기본적으로 polling 하면서 Job이 있다면 처리 하는 방식
+		if ( false == GDatabaseJobManager->ExecuteDatabaseJobs() )
+			return -1 ;
+
+		Sleep(1) ;
+	}
+
+	return 0 ;
+}
+
 void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighValue)
 {
-	 GClientManager->OnPeriodWork() ;
-	 
+	assert( LThreadType == THREAD_CLIENT ) ;
+
+	GClientManager->OnPeriodWork() ;
 }

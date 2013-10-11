@@ -1,9 +1,11 @@
 #include "stdafx.h"
+#include "EasyServer.h"
 #include "..\..\PacketType.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
+#include "DatabaseJobManager.h"
 
-ClientManager* GClientManager = NULL ;
+ClientManager* GClientManager = nullptr ;
 
 ClientSession* ClientManager::CreateClient(SOCKET sock)
 {
@@ -48,6 +50,9 @@ void ClientManager::OnPeriodWork()
 		ClientPeriodWork() ;
 		mLastClientWorkTick = currTick ;
 	}
+
+	/// 처리 완료된 DB 작업들 각각의 Client로 dispatch
+	DispatchDatabaseJobResults() ;
 		
 }
 
@@ -84,5 +89,21 @@ void ClientManager::ClientPeriodWork()
 	{
 		ClientSession* client = it.second ;
 		client->OnTick() ;
+	}
+}
+
+void ClientManager::DispatchDatabaseJobResults()
+{
+	/// 쌓여 있는 DB 작업 처리 결과들을 각각의 클라에게 넘긴다
+	DatabaseJobResult dbResult ;
+	while ( GDatabaseJobManager->PopDatabaseJobResult(dbResult) )
+	{
+		auto& it = mClientList.find(dbResult.mSockKey) ;
+
+		if ( it != mClientList.end() && it->second->IsConnected() )
+		{
+			/// dispatch here....
+			it->second->DatabaseJobDone(dbResult) ;
+		}
 	}
 }

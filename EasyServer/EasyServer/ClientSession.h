@@ -8,6 +8,7 @@
 #define BUFSIZE	(1024*10)
 class ClientSession ;
 class ClientManager ;
+struct DatabaseJobResult ;
 
 struct OverlappedIO : public OVERLAPPED
 {
@@ -41,6 +42,8 @@ public:
 	void	Disconnect() ;
 
 	bool	IsConnected() const { return mConnected ; }
+
+	void	DatabaseJobDone(const DatabaseJobResult& result) ;
 
 
 private:
