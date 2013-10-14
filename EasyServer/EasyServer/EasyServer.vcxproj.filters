@@ -52,6 +52,9 @@
     <ClInclude Include="sqlite3ext.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="DbHelper.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -76,6 +79,9 @@
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="sqlite3.c">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="DbHelper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>

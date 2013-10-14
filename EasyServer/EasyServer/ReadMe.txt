@@ -7,7 +7,9 @@
 
 -- DB Manager에 DB 작업 하는 부분 넣기
 --- DB Helper 구현
----- 기본적으로 sqllite 지원으로..
+
+--- DB JOB Context  풀로 만들기..
+
 
 
 

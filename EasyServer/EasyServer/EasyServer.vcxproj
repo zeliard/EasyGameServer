@@ -87,6 +87,7 @@
     <ClInclude Include="ClientManager.h" />
     <ClInclude Include="ClientSession.h" />
     <ClInclude Include="DatabaseJobManager.h" />
+    <ClInclude Include="DbHelper.h" />
     <ClInclude Include="EasyServer.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="SPSCQueue.h" />
@@ -100,6 +101,7 @@
     <ClCompile Include="ClientManager.cpp" />
     <ClCompile Include="ClientSession.cpp" />
     <ClCompile Include="DatabaseJobManager.cpp" />
+    <ClCompile Include="DbHelper.cpp" />
     <ClCompile Include="EasyServer.cpp" />
     <ClCompile Include="Exception.cpp" />
     <ClCompile Include="sqlite3.c">

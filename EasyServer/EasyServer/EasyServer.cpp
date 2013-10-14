@@ -1,6 +1,3 @@
-// EasyServer.cpp : 콘솔 응용 프로그램에 대한 진입점을 정의합니다.
-//
-
 #include "stdafx.h"
 #include "EasyServer.h"
 
@@ -10,18 +7,17 @@
 #include "ClientSession.h"
 #include "ClientManager.h"
 #include "DatabaseJobManager.h"
-#include "sqlite3.h"
+#include "DbHelper.h"
 
 #pragma comment(lib,"ws2_32.lib")
 
+/// DB 연결 스트링 (config 같은걸로 빼는게 좋다)
+const char* DB_CONN_STR = "..\\Database\\user_example.db3" ;
 
 SOCKET g_AcceptedSocket = NULL ;
+
 __declspec(thread) int LThreadType = -1 ;
 
-
-unsigned int WINAPI ClientHandlingThread( LPVOID lpParam ) ;
-unsigned int WINAPI DatabaseHandlingThread( LPVOID lpParam ) ;
-void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighValue) ;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -34,6 +30,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	/// Manager Init
 	GClientManager = new ClientManager ;
 	GDatabaseJobManager = new DatabaseJobManager ;
+
+	/// DB Helper 초기화
+	if ( false == DbHelper::Initialize(DB_CONN_STR) )
+		return -1 ;
 
 	/// 윈속 초기화
 	WSADATA wsa ;
@@ -108,6 +108,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	// 윈속 종료
 	WSACleanup() ;
+
+	DbHelper::Finalize() ;
 
 	delete GClientManager ;
 	delete GDatabaseJobManager ;
