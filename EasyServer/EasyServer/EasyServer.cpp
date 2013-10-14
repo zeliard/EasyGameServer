@@ -5,6 +5,8 @@
 #include "EasyServer.h"
 
 #include "..\..\PacketType.h"
+
+#include "Exception.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
 #include "DatabaseJobManager.h"
@@ -22,6 +24,10 @@ void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighVa
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	/// crash 발생시 dump 남기기 위해서
+	SetUnhandledExceptionFilter(ExceptionFilter) ;
+
+
 	LThreadType = THREAD_MAIN ;
 
 	/// Manager Init

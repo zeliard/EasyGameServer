@@ -4,8 +4,6 @@
 
 * TODO
 
--- exceptionfilter 설치
-
 
 -- DB Manager에 DB 작업 하는 부분 넣기
 --- DB Helper 구현

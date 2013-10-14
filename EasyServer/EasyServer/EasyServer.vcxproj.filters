@@ -43,6 +43,9 @@
     <ClInclude Include="CircularBuffer.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Exception.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -61,6 +64,9 @@
       <Filter>SourceCode</Filter>
     </ClCompile>
     <ClCompile Include="CircularBuffer.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Exception.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>

@@ -23,8 +23,6 @@ bool DatabaseJobManager::ExecuteDatabaseJobs()
 {
 	assert( LThreadType == THREAD_DATABASE ) ;
 
-	/// Request가 있는한 처리를 하고 리턴
-
 	DatabaseJobRequest requestJob ;
 	while ( mDbJobRequestQueue.PopFront(requestJob) )
 	{

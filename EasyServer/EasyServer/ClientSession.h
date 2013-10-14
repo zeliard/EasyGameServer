@@ -46,7 +46,7 @@ public:
 	void	DatabaseJobDone(const DatabaseJobResult& result) ;
 
 
-	/// 현재 Overlapped I/O 요청 중인 상태인지 검사하기 위함
+	/// 현재 Send/Recv 요청 중인 상태인지 검사하기 위함
 	void	IncOverlappedRequest()		{ ++mOverlappedRequested ; }
 	void	DecOverlappedRequest()		{ --mOverlappedRequested ; }
 	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
