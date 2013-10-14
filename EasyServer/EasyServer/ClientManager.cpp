@@ -66,7 +66,7 @@ void ClientManager::CollectGarbageSessions()
 		{
 			ClientSession* client = it.second ;
 
-			if ( false == client->IsConnected() )
+			if ( false == client->IsConnected() && false == client->DoingOverlappedOperation() )
 				disconnectedSessions.push_back(client) ;
 		}
 	) ;

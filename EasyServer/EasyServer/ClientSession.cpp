@@ -44,6 +44,8 @@ bool ClientSession::PostRecv()
 			return false ;
 	}
 
+	IncOverlappedRequest() ;
+
 	return true ;
 }
 
@@ -166,6 +168,7 @@ bool ClientSession::Send(PacketHeader* pkt)
 			return false ;
 	}
 
+	IncOverlappedRequest() ;
 	return true ;
 }
 
@@ -224,6 +227,8 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
 	
+	fromClient->DecOverlappedRequest() ;
+
 	if ( !fromClient->IsConnected() )
 		return ;
 
@@ -249,6 +254,8 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
+
+	fromClient->DecOverlappedRequest() ;
 
 	if ( !fromClient->IsConnected() )
 		return ;

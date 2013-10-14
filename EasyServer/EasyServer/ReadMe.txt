@@ -4,9 +4,13 @@
 
 * TODO
 
+-- exceptionfilter 설치
+
+
 -- DB Manager에 DB 작업 하는 부분 넣기
 --- DB Helper 구현
----- 기본적으로 sqllite 지원으로?
+---- 기본적으로 sqllite 지원으로..
+
 
 
 

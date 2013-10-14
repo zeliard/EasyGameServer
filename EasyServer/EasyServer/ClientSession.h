@@ -22,7 +22,7 @@ class ClientSession
 {
 public:
 	ClientSession(SOCKET sock, int idx)
-		: mConnected(false), mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE)
+		: mConnected(false), mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
 	}
@@ -46,8 +46,14 @@ public:
 	void	DatabaseJobDone(const DatabaseJobResult& result) ;
 
 
+	/// 현재 Overlapped I/O 요청 중인 상태인지 검사하기 위함
+	void	IncOverlappedRequest()		{ ++mOverlappedRequested ; }
+	void	DecOverlappedRequest()		{ --mOverlappedRequested ; }
+	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
+
 private:
 	void	OnTick() ;
+
 
 private:
 	bool			mConnected ;
@@ -61,6 +67,7 @@ private:
 
 	OverlappedIO	mOverlappedSend ;
 	OverlappedIO	mOverlappedRecv ;
+	int				mOverlappedRequested ;
 
 	friend class ClientManager ;
 } ;
