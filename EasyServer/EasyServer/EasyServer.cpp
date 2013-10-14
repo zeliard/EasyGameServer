@@ -10,6 +10,7 @@
 #include "ClientSession.h"
 #include "ClientManager.h"
 #include "DatabaseJobManager.h"
+#include "sqlite3.h"
 
 #pragma comment(lib,"ws2_32.lib")
 
