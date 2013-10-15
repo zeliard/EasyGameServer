@@ -30,8 +30,9 @@ Windows의 Overlapped I/O를 이용한 single-thread 기반의 asynchronous non-
 8. 그 이외 C++ 11의 몇몇 특징 사용 방법
 
 
-## 당신이 여기에서 배울 수 없는 것
 
-1. multi-thread 기반의 IOCP을 이용한 고성능 서버 만들기 방법
+## 기대했을 수 있지만, 여기에서 배울 수 없는 것
+
+1. multi-thread 기반의 IOCP를 이용한 고성능 서버 만들기 방법
 
 2. 스마트 포인터를 통한 객체의 생명 관리
