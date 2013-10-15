@@ -4,13 +4,11 @@
 #include "Exception.h"
 
 sqlite3* DbHelper::mSqlite = NULL ;
-int DbHelper::mDoingCount = 0 ;
+
 
 DbHelper::DbHelper(const char* sql) 
 	: mResult(NULL), mResultColCount(0), mBindColCount(0), mResultCurrentCol(0)
 {
-	CRASH_ASSERT( mDoingCount == 0 ) ;
-
 	char* errMsg = NULL ;
 
 	if ( sqlite3_prepare_v2(mSqlite, sql, -1, &mResult, NULL) != SQLITE_OK )
@@ -18,14 +16,10 @@ DbHelper::DbHelper(const char* sql)
 		printf("DbHelper Query [%s] Prepare failed: %s\n", sql, sqlite3_errmsg(mSqlite)) ;
 		CRASH_ASSERT(false) ;
 	}
-
-	++mDoingCount ;
 }
 
 DbHelper::~DbHelper()
 {
-	--mDoingCount ;
-
 	sqlite3_finalize(mResult) ;
 }
 
@@ -68,7 +62,8 @@ bool DbHelper::Execute(const char* format, ...)
 	
 	char* errMsg = NULL ;
 	
-	///FYI: 사실 실무에서는 (SQL Injection 때문에) 이렇게 쿼리를 직접 넣지 않고 파라미터별로 일일이 BIND한다. 
+	///FYI: 사실 실무에서는 (SQL Injection 때문에) 이렇게 쿼리를 직접 넣지 않고
+	///파라미터별로 일일이 BIND한다. (BindParamXXX 멤버함수 참고)
 	if (sqlite3_exec(mSqlite, sqlQuery, NULL, NULL, &errMsg) != SQLITE_OK)
 	{
 		printf("SQL [%s] ERROR [%s] \n", sqlQuery, errMsg) ;
@@ -114,23 +109,23 @@ bool DbHelper::BindParamText(const char* text, int count)
 	return true ;
 }
 
-bool DbHelper::FetchRow()
+RESULT_TYPE DbHelper::FetchRow()
 {
 	int result = sqlite3_step(mResult) ;
 	if ( result != SQLITE_ROW && result != SQLITE_DONE )
 	{
 		printf("DbHelper FetchRow failed: %s\n", sqlite3_errmsg(mSqlite)) ;
-		return false ;
+		return RESULT_ERROR ;
 	}
 
 	/// 결과셋으로 얻어올 데이터가 없다. (그냥 쿼리 실행만 된 것)
 	if ( result == SQLITE_DONE )
-		return false ;
+		return RESULT_DONE ;
 
 	mResultColCount = sqlite3_column_count(mResult) ;
 	mResultCurrentCol = 0 ;
 
-	return true ;
+	return RESULT_ROW ;
 }
 
 int DbHelper::GetResultParamInt()

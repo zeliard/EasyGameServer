@@ -55,6 +55,9 @@
     <ClInclude Include="DbHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="SQLStatement.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -26,9 +26,6 @@ class DatabaseJobManager
 public:
 	DatabaseJobManager() {}
 
-	/// DB연결하고 초기화 등등
-	bool Initialize() ;
-	void Finalize() ; 
 
 	bool ExecuteDatabaseJobs() ;
 

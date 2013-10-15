@@ -24,7 +24,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	/// crash 발생시 dump 남기기 위해서
 	SetUnhandledExceptionFilter(ExceptionFilter) ;
 
-
 	LThreadType = THREAD_MAIN ;
 
 	/// Manager Init
@@ -73,9 +72,6 @@ int _tmain(int argc, _TCHAR* argv[])
     if (hThread == NULL)
 		return -1 ;
 
-	/// DB Init
-	if ( false == GDatabaseJobManager->Initialize() )
-		return -1 ;
 
 	/// DB Thread
 	HANDLE hDbThread = (HANDLE)_beginthreadex (NULL, 0, DatabaseHandlingThread, NULL, 0, (unsigned int*)&dwThreadId) ;
@@ -103,8 +99,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	CloseHandle( hThread ) ;
 	CloseHandle( hEvent ) ;
 	CloseHandle( hDbThread ) ;
-
-	GDatabaseJobManager->Finalize() ;
 
 	// 윈속 종료
 	WSACleanup() ;

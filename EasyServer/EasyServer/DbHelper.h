@@ -3,6 +3,13 @@
 struct sqlite3 ;
 struct sqlite3_stmt ;
 
+enum RESULT_TYPE
+{
+	RESULT_ERROR,
+	RESULT_ROW,
+	RESULT_DONE
+} ;
+
 class DbHelper
 {
 public:
@@ -20,7 +27,7 @@ public:
 	bool BindParamDouble(double param) ;
 	bool BindParamText(const char* text, int count) ;
 
-	bool FetchRow() ;
+	RESULT_TYPE FetchRow() ;
 
 	/// FetchRow시 데이터가 있다면 반드시 차례대로 호출해야함
 	int GetResultParamInt() ;
@@ -31,8 +38,6 @@ public:
 private:
 
 	static sqlite3* mSqlite ;
-
-	static int		mDoingCount ; ///< 중첩 수행 체크용
 
 	/// 현재 수행중인 SQL문에 대한 정보
 	sqlite3_stmt*	mResult ;
