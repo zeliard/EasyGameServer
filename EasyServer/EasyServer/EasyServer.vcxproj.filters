@@ -58,6 +58,12 @@
     <ClInclude Include="SQLStatement.h">
       <Filter>SourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="ObjectPool.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="DatabaseJobContext.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -86,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="DbHelper.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseJobContext.cpp">
+      <Filter>SourceCode</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
