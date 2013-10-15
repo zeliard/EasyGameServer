@@ -17,7 +17,8 @@ EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다.
 1. Win32 API의 Overlapped I/O를 이용한 비동기 네트워크 입출력 및 다수의 클라이언트 세션 처리
 
 2. TCP 스트림을 다루는 방법 및 TCP 스트림을 통한 패킷 시리얼라이징,
-   Circular Byte Buffer를 구성하고 다루는 법
+   Circular Byte Buffer를 구성하고 다루는 법,
+   NAGLE (TCP_NODELAY) 컨트롤 
    
 3. 게임 클라이언트에서의 네트워크 처리 방법,
    Asyncselect를 이용한 asynchronous non-blocking 방식의 클라이언트 구조
