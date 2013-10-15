@@ -8,8 +8,7 @@ Windows의 Overlapped I/O를 이용한 single-thread 기반의 asynchronous non-
 
 1. 당신이 EasyGameServer에서 참고하거나 배울 수 있는 것
 
-A. Win32 API의 Overlapped I/O를 이용한 비동기 네트워크 입출력
-   다수의 클라이언트 세션 처리
+A. Win32 API의 Overlapped I/O를 이용한 비동기 네트워크 입출력 및 다수의 클라이언트 세션 처리
 
 B. TCP 스트림을 다루는 방법 및 TCP 스트림을 통한 패킷 시리얼라이징
    Circular Byte Buffer를 구성하고 다루는 법
