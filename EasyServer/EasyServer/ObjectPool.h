@@ -47,8 +47,8 @@ public:
 
 private:
 	static uint8_t*	mFreeList ;
-	static int		mTotalAllocCount ;
-	static int		mCurrentUseCount ;
+	static int		mTotalAllocCount ; ///< for tracing
+	static int		mCurrentUseCount ; ///< for tracing
 	
 	
 };
