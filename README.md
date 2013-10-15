@@ -5,6 +5,12 @@ NHN NEXT의 첫번째 게임 프로젝트를 위한 교육용 게임 서버 기�
 
 Windows의 Overlapped I/O를 이용한 single-thread 기반의 asynchronous non-blocking 방식의 TCP 서버입니다.
 
+EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다. 
+
+1. 프로그램의 초기화 및 진입을 담당하고 ACCEPT를 처리하는 main thread
+2. 클라이언트 세션 처리, 클라이언트 타이머 및 I/O를 담당하는 client handling thread 
+3. 데이터베이스 처리를 담당하는 database handling thread
+
 
 ## 당신이 EasyGameServer에서 참고하거나 배울 수 있는 것
 
@@ -21,13 +27,15 @@ Windows의 Overlapped I/O를 이용한 single-thread 기반의 asynchronous non-
    Half-sync Half-async 패턴을 이용한 데이터베이스 처리 전용 스레드의 사용법,
    Wait-free Single Producer Single Consumer Queue를 구현하는 방법
 
-5. Waitable Timer를 이용한 게임 타이머 구성 방법
+5. Windows APC(Async Procedure Call) 큐의 개념 이해와 더불어 Waitable Timer를 이용한 게임 타이머 구성 방법
 
 6. 서버에서의 예외 상황 발생시 minidump 생성 방법
 
 7. Object Pooling을 통한 메모리 할당/해제 성능 향상 방법
 
-8. 그 이외 C++ 11의 몇몇 특징 사용 방법
+8. Thread local storage의 사용 방법
+
+9. 그 이외 C++ 11의 몇몇 특징 사용 방법
 
 
 
