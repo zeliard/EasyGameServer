@@ -306,8 +306,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			if ( rand() % 2 == 0 )
 			{
+				static int pid = 1000 ;
 				TestPing sendData ;
-				sendData.mPlayerId = g_MyClientId ;
+				sendData.mPlayerId = pid++ ;
 				sendData.mPosX = rand() ;
 				sendData.mPosY = rand() ;
 				sendData.mPosZ = rand() ;
