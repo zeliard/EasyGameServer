@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "EasyServer.h"
 
+#include "Config.h"
 #include "..\..\PacketType.h"
 
 #include "Exception.h"
@@ -11,8 +12,7 @@
 
 #pragma comment(lib,"ws2_32.lib")
 
-/// DB 연결 스트링 (config 같은걸로 빼는게 좋다)
-const char* DB_CONN_STR = "..\\Database\\user_example.db3" ;
+
 
 SOCKET g_AcceptedSocket = NULL ;
 
@@ -169,8 +169,7 @@ unsigned int WINAPI DatabaseHandlingThread( LPVOID lpParam )
 	while ( true )
 	{
 		/// 기본적으로 polling 하면서 Job이 있다면 처리 하는 방식
-		if ( false == GDatabaseJobManager->ExecuteDatabaseJobs() )
-			return -1 ;
+		GDatabaseJobManager->ExecuteDatabaseJobs() ;
 
 		Sleep(1) ;
 	}

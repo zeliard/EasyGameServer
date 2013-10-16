@@ -2,6 +2,7 @@
 #include "ClientSession.h"
 #include "..\..\PacketType.h"
 #include "ClientManager.h"
+#include "DatabaseJobContext.h"
 #include "DatabaseJobManager.h"
 
 bool ClientSession::OnConnect(SOCKADDR_IN* addr)
@@ -86,15 +87,12 @@ void ClientSession::OnRead(size_t len)
 			{
 				TestPing inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
-				
-				TestPong outPacket ;
-				sprintf_s(outPacket.mData, "SC_PONG Broadcast fromClient[%d]: %.4f, %.4f, %.4f \n", inPacket.mPlayerId, inPacket.mPosX, inPacket.mPosY, inPacket.mPosZ ) ;
-				outPacket.mResult = true ;
-				outPacket.mPlayerId = mClientId ;
-				
-				/// CS_PING 오면 모든 접속중인 클라에게 방송하는 것 테스트
-				if ( !Broadcast(&outPacket) )
-					return ;
+
+				//TEST: player load
+				LoadPlayerDataContext* newDbJob = new LoadPlayerDataContext(mSocket, inPacket.mPlayerId) ;
+				GDatabaseJobManager->PushDatabaseJobRequest(newDbJob) ;
+
+			
 			}
 			break ;
 
@@ -203,24 +201,51 @@ void ClientSession::OnTick()
 	/// 클라별로 주기적으로 해야될 일은 여기에
 	//printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
 	
-	//TEST: DB JOB
-	if ( IsConnected() )
-	{
-		DatabaseJobRequest dbRequest ;
-		dbRequest.mSockKey = mSocket ; ///< 소켓을 키로 쓰자
-
-		GDatabaseJobManager->PushDatabaseJobRequest(dbRequest) ;
-	}
 	
 }
 
-void ClientSession::DatabaseJobDone(const DatabaseJobResult& result)
+void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 {
+	CRASH_ASSERT( mSocket == result->mSockKey ) ;
+	
 	//TODO: DB 작업 끝난 처리는 여기에
-	printf("DEBUG: DB JOB DONE. Client[%d] \n", mClientId) ;
+
+	//TEST
+	if ( typeid(*result) == typeid(LoadPlayerDataContext) )
+	{
+		LoadPlayerDataContext* login = dynamic_cast<LoadPlayerDataContext*>(result) ;
+
+		LoginDone(login->mPosX, login->mPosY, login->mPosZ, login->mPlayerName) ;
+
+		printf("DEBUG: DB JOB DONE. Client[%d] \n", mClientId) ;
+	}
+	
+	
+
+	delete result ;
 
 }
 
+
+void ClientSession::LoginDone(double x, double y, double z, const char* name)
+{
+	mPosX = x ;
+	mPosY = y ;
+	mPosZ = z ;
+	strcpy_s(mPlayerName, name) ;
+
+	//TEST: CS_PING 오면 모든 접속중인 클라에게 방송하는 것 테스트
+	TestPong outPacket ;
+
+	sprintf_s(outPacket.mData, "SC_PONG Broadcast fromClient[%s]: %.4f, %.4f, %.4f \n",
+		mPlayerName, mPosX, mPosY, mPosZ ) ;
+	
+	outPacket.mResult = true ;
+	outPacket.mPlayerId = mClientId ;
+	
+	if ( !Broadcast(&outPacket) )
+		return ;
+}
 ///////////////////////////////////////////////////////////
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)

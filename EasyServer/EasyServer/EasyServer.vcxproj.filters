@@ -64,6 +64,9 @@
     <ClInclude Include="DatabaseJobContext.h">
       <Filter>SourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

@@ -3,6 +3,7 @@
 #include "..\..\PacketType.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
+#include "DatabaseJobContext.h"
 #include "DatabaseJobManager.h"
 
 ClientManager* GClientManager = nullptr ;
@@ -95,10 +96,10 @@ void ClientManager::ClientPeriodWork()
 void ClientManager::DispatchDatabaseJobResults()
 {
 	/// 쌓여 있는 DB 작업 처리 결과들을 각각의 클라에게 넘긴다
-	DatabaseJobResult dbResult ;
+	DatabaseJobContext* dbResult = nullptr ;
 	while ( GDatabaseJobManager->PopDatabaseJobResult(dbResult) )
 	{
-		auto& it = mClientList.find(dbResult.mSockKey) ;
+		auto& it = mClientList.find(dbResult->mSockKey) ;
 
 		if ( it != mClientList.end() && it->second->IsConnected() )
 		{

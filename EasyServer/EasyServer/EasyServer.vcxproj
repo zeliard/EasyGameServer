@@ -86,6 +86,7 @@
     <ClInclude Include="CircularBuffer.h" />
     <ClInclude Include="ClientManager.h" />
     <ClInclude Include="ClientSession.h" />
+    <ClInclude Include="Config.h" />
     <ClInclude Include="DatabaseJobContext.h" />
     <ClInclude Include="DatabaseJobManager.h" />
     <ClInclude Include="DbHelper.h" />

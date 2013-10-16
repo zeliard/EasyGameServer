@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "..\..\PacketType.h"
 #include "CircularBuffer.h"
 #include <map>
@@ -8,7 +9,7 @@
 #define BUFSIZE	(1024*10)
 class ClientSession ;
 class ClientManager ;
-struct DatabaseJobResult ;
+struct DatabaseJobContext ;
 
 struct OverlappedIO : public OVERLAPPED
 {
@@ -23,11 +24,15 @@ class ClientSession
 public:
 	ClientSession(SOCKET sock, int idx)
 		: mConnected(false), mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
+		, mPosX(0), mPosY(0), mPosZ(0)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
+		memset(mPlayerName, 0, sizeof(mPlayerName)) ;
 	}
 	~ClientSession() {}
 
+
+	void	LoginDone(double x, double y, double z, const char* name) ;
 
 	void	OnRead(size_t len) ;
 	void	OnWriteComplete(size_t len) ;
@@ -43,7 +48,7 @@ public:
 
 	bool	IsConnected() const { return mConnected ; }
 
-	void	DatabaseJobDone(const DatabaseJobResult& result) ;
+	void	DatabaseJobDone(DatabaseJobContext* result) ;
 
 
 	/// 현재 Send/Recv 요청 중인 상태인지 검사하기 위함
@@ -54,6 +59,11 @@ public:
 private:
 	void	OnTick() ;
 
+private:
+	double			mPosX ;
+	double			mPosY ;
+	double			mPosZ ;
+	char			mPlayerName[MAX_PLAYER_NAME_LEN] ;
 
 private:
 	bool			mConnected ;

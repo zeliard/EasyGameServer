@@ -5,9 +5,8 @@
 * TODO
 
 
--- DB Manager에 DB 작업 하는 부분 넣기
---- DB JOB Context  풀로 만들기..
----- CS_LOGIN 처리하는 샘플
+-- CS_LOGIN 처리하는 샘플
+--- 패킷 이름 변경
 
 
 
