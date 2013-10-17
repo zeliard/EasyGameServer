@@ -8,6 +8,7 @@
 #include <windows.h>
 #include <assert.h>
 #include <stdio.h>
+#include <time.h>
 
 
 #include "..\..\PacketType.h"
@@ -29,6 +30,8 @@ CircularBuffer g_RecvBuffer(BUFSIZE) ;
 
 char* szServer = "localhost" ;
 int nPort = 9001 ;
+
+bool g_LoginComplete = false ;
 
 /// 서버에서 받아온 나의 ID 
 int g_MyClientId = -1 ; 
@@ -87,22 +90,33 @@ void ProcessPacket(HWND hWnd)
 
 		switch ( header.mType )
 		{
-		case PKT_SC_PONG:
+		case PKT_SC_LOGIN:
 			{
-				TestPong recvData ;
+				LoginResult recvData ;
 				if ( g_RecvBuffer.Read((char*)&recvData, header.mSize) )
 				{
 					// 패킷처리
-					assert( recvData.mResult ) ;
+					if ( recvData.mPlayerId == -1  )
+					{
+						/// 여기 걸리면 로그인 실패다.
+						ExitProcess(-1) ;
+					}
+					
+
 					g_MyClientId = recvData.mPlayerId ;
+					g_LoginComplete = true ;
 				
+					char buff[128] = {0, } ;
+					sprintf_s(buff, "LOGIN SUCCESS ClientId[%d] Name[%s] POS(%.4f, %.4f, %.4f) \n", g_MyClientId, recvData.mName, recvData.mPosX, recvData.mPosY, recvData.mPosZ) ;
+
 					static int ypos = 33 ;
 					HDC hdc = GetDC(hWnd) ;
-					TextOutA(hdc, 10, ypos, recvData.mData, strlen(recvData.mData)) ;
+					TextOutA(hdc, 10, 33, buff, strlen(buff)) ;
 					ReleaseDC(hWnd, hdc) ;
-					ypos += 15 ;
-					if ( ypos > 600 )
-						ypos = 33 ;
+
+					/// 채팅 방송 패킷 보내는 타이머 돌리자.. 
+					SetTimer(hWnd, 337, 100, NULL) ;
+				
 				}
 				else
 				{
@@ -111,25 +125,24 @@ void ProcessPacket(HWND hWnd)
 			}
 			break ;
 
-		case PKT_SC_PONG2:
+		case PKT_SC_CHAT:
 			{
-				TestPong2 recvData ;
+				ChatBroadcastResult recvData ;
 				if ( g_RecvBuffer.Read((char*)&recvData, header.mSize) )
 				{
-					// 패킷처리
-					assert( recvData.mResult ) ;
-					g_MyClientId = recvData.mPlayerId ;
+					/// 여기 걸리면 로그인 안된놈이 보낸거다
+					assert( recvData.mPlayerId != -1  ) ;
 
-					char buff[128] = {0, } ;
-					sprintf_s(buff, "SC_PONG2 from Client[%d], %.4f, %.4f, %.4f \n", g_MyClientId, recvData.mPosX, recvData.mPosY, recvData.mPosZ ) ;
+					char buff[MAX_CHAT_LEN] = {0, } ;
+					sprintf_s(buff, "CHAT from Player[%s]: %s \n", recvData.mName, recvData.mChat ) ;
 
-					static int y2pos = 33 ;
+					static int y2pos = 60 ;
 					HDC hdc = GetDC(hWnd) ;
-					TextOutA(hdc, 500, y2pos, buff, strlen(buff)) ;
+					TextOutA(hdc, 10, y2pos, buff, strlen(buff)) ;
 					ReleaseDC(hWnd, hdc) ;
 					y2pos += 15 ;
 					if ( y2pos > 600 )
-						y2pos = 33 ;
+						y2pos = 60 ;
 					
 				}
 				else
@@ -276,7 +289,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case WM_CREATE:
 		{
 			// Create a push button
-			CreateWindow(L"BUTTON", L"Send ON/OFF Toggle", WS_TABSTOP|WS_VISIBLE|WS_CHILD|BS_DEFPUSHBUTTON,
+			CreateWindow(L"BUTTON", L"CONNECT", WS_TABSTOP|WS_VISIBLE|WS_CHILD|BS_DEFPUSHBUTTON,
 						10,	10, 175, 23, hWnd, (HMENU)IDC_SEND_BUTTON, GetModuleHandle(NULL), NULL);
 
 			if ( false == Initialize() )
@@ -285,18 +298,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break ;
 			}
 			
-			int	nResult=WSAAsyncSelect(g_Socket, hWnd, WM_SOCKET,(FD_CLOSE|FD_CONNECT));
+			int	nResult = WSAAsyncSelect(g_Socket, hWnd, WM_SOCKET,(FD_CLOSE|FD_CONNECT));
 			if (nResult)
 			{
 				MessageBox(hWnd, L"WSAAsyncSelect failed", L"Critical Error", MB_ICONERROR);
 				SendMessage(hWnd,WM_DESTROY,NULL,NULL);
 				break;
-			}
-
-			if ( false == Connect(szServer, nPort) )
-			{
-				SendMessage(hWnd,WM_DESTROY,NULL,NULL) ;
-				break ;
 			}
 		
 		}
@@ -304,34 +311,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case WM_TIMER:
 		{
-			if ( rand() % 2 == 0 )
-			{
-				static int pid = 1000 ;
-				TestPing sendData ;
-				sendData.mPlayerId = pid++ ;
-				sendData.mPosX = rand() ;
-				sendData.mPosY = rand() ;
-				sendData.mPosZ = rand() ;
+			/// 주기적으로 채팅 날려보자.
 
-				if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
-				{
-					PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
-				}
-			}
-			else
+			ChatBroadcastRequest sendData ;
+			
+			sendData.mPlayerId = g_MyClientId ;
+			
+			/// 랜덤 문자열을 채팅으로 날리기
+			char* buff = sendData.mChat ; 
+			for (int i=0 ; i<300 ; ++i )
 			{
-				TestPing2 sendData ;
-				sendData.mPlayerId = g_MyClientId ;
-				sendData.mPosX = rand() ;
-				sendData.mPosY = rand() ;
-				sendData.mPosZ = rand() ;
-				sprintf_s(sendData.mData , "CS_PING2 client[%d], %.4f, %.4f, %.4f \n", g_MyClientId, sendData.mPosX, sendData.mPosY, sendData.mPosZ ) ;
-
-				if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
-				{
-					PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
-				}
+				sendData.mChat[i] = (char) (65 + (rand() % 26) ) ;
 			}
+			sendData.mChat[300] = '\0' ;
+			
+
+			if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+			{
+				PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+			}
+			
 			
 		}
 		break ;
@@ -346,18 +345,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 			case IDC_SEND_BUTTON:
 			{
-				static bool timerToggle = false ;
-
-				if ( !timerToggle )
+				if ( !g_LoginComplete && !Connect(szServer, nPort) )
 				{
-					/// 100ms 마다  WM_TIMER발생 시키기
-					SetTimer(hWnd, 337, 100, NULL) ;
-					timerToggle = true ;
-				}
-				else
-				{
-					KillTimer(hWnd, 337) ;
-					timerToggle = false ;
+					SendMessage(hWnd,WM_DESTROY,NULL,NULL) ;
+					break ;
 				}
 
 			}
@@ -392,7 +383,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					int opt = 1 ;
 					::setsockopt(g_Socket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) ;
 
-					int nResult=WSAAsyncSelect(g_Socket, hWnd, WM_SOCKET, (FD_CLOSE|FD_READ|FD_WRITE) ) ;
+					srand( time(NULL) ) ;
+					/// 대략 1000~1100 의 ID로 로그인 해보자 
+					LoginRequest sendData ;
+					sendData.mPlayerId = 1000 + rand() % 101 ;
+
+					if ( g_SendBuffer.Write((const char*)&sendData, sendData.mSize) )
+					{
+						PostMessage(hWnd, WM_SOCKET, wParam, FD_WRITE) ;
+					}
+
+
+					int nResult = WSAAsyncSelect(g_Socket, hWnd, WM_SOCKET, (FD_CLOSE|FD_READ|FD_WRITE) ) ;
 					if (nResult)
 					{
 						assert(false) ;
