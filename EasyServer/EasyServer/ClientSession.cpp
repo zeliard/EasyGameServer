@@ -194,6 +194,19 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 void ClientSession::OnTick()
 {
 	/// 클라별로 주기적으로 해야될 일은 여기에
+
+	/// 특정 주기로 DB에 위치 저장
+	if ( ++mDbUpdateCount == PLAYER_DB_UPDATE_CYCLE )
+	{
+		mDbUpdateCount = 0 ;
+		UpdatePlayerDataContext* updatePlayer = new UpdatePlayerDataContext(mSocket, mPlayerId) ;
+
+		updatePlayer->mPosX = mPosX ;
+		updatePlayer->mPosY = mPosY ;
+		updatePlayer->mPosZ = mPosZ ;
+		strcpy_s(updatePlayer->mComment, "updated_test") ; ///< 일단은 테스트를 위해
+		GDatabaseJobManager->PushDatabaseJobRequest(updatePlayer) ;
+	}
 	
 }
 
@@ -211,15 +224,23 @@ void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 		LoginDone(login->mPlayerId, login->mPosX, login->mPosY, login->mPosZ, login->mPlayerName) ;
 	
 	}
+	else if ( typeInfo == typeid(UpdatePlayerDataContext) )
+	{
+		UpdateDone() ;
+	}
 	else
 	{
 		CRASH_ASSERT(false) ;
 	}
-	
-
-	delete result ;
 
 }
+
+void ClientSession::UpdateDone()
+{
+	/// 콘텐츠를 넣기 전까지는 딱히 해줄 것이 없다. 단지 테스트를 위해서..
+	printf("DEBUG: Player[%d] Update Done\n", mPlayerId) ;
+}
+
 
 
 void ClientSession::LoginDone(int pid, double x, double y, double z, const char* name)
@@ -237,6 +258,8 @@ void ClientSession::LoginDone(int pid, double x, double y, double z, const char*
 
 	mLogon = true ;
 }
+
+
 
 ///////////////////////////////////////////////////////////
 

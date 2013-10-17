@@ -26,51 +26,48 @@ bool LoadPlayerDataContext::OnExecute()
 	return true ;
 }
 
-
-
-	/* TEST
-
-	static int testid = 1000 ;
-	char testbuf[16] ; 
-	sprintf_s(testbuf, "player%d", testid) ;
+bool CreatePlayerDataContext::OnExecute()
+{
 	DbHelper dbhelper(SQL_InsertTest) ;
-	dbhelper.BindParamInt(testid) ;
-	dbhelper.BindParamText(testbuf, strlen(testbuf)) ;
-	dbhelper.BindParamDouble(rand()) ;
-	dbhelper.BindParamDouble(rand()) ;
-	dbhelper.BindParamDouble(rand()) ;
-	dbhelper.BindParamText(testbuf, strlen(testbuf)) ;
 
-	dbhelper.FetchRow() ;
+	dbhelper.BindParamInt(mPlayerId) ;
+	dbhelper.BindParamText(mPlayerName, strlen(mPlayerName)) ;
+	dbhelper.BindParamDouble(mPosX) ;
+	dbhelper.BindParamDouble(mPosY) ;
+	dbhelper.BindParamDouble(mPosZ) ;
+	dbhelper.BindParamText(mComment, strlen(mComment)) ;
 
-	testid++ ;
-	
-	*/
+	if ( RESULT_ERROR == dbhelper.FetchRow() )
+		return false ;
 
-	/*
-	static int testid = 1000 ;
+	return true ;
+}
 
+bool DeletePlayerDataContext::OnExecute()
+{
+	DbHelper dbhelper(SQL_DeleteTest) ;
+	dbhelper.BindParamInt(mPlayerId) ;
 
+	if ( RESULT_ERROR == dbhelper.FetchRow() )
+		return false ;
 
-	testid++ ;
-	
+	return true ;
 
-	
+}
 
-	char testbuf[20] ; 
-	sprintf_s(testbuf, "abc_comment_TEST") ;
+bool UpdatePlayerDataContext::OnExecute()
+{
+	DbHelper dbhelper(SQL_UpdateTest) ;
 
-	DbHelper dbh2(SQL_UpdateTest) ;
-	dbh2.BindParamText(testbuf, strlen(testbuf)) ;
-	dbh2.BindParamInt(1238) ;
-	if ( RESULT_DONE != dbh2.FetchRow() )
-	{
-		printf("error.........\n") ;
-	}
-	*/
+	dbhelper.BindParamDouble(mPosX) ;
+	dbhelper.BindParamDouble(mPosY) ;
+	dbhelper.BindParamDouble(mPosZ) ;
+	dbhelper.BindParamText(mComment, strlen(mComment)) ;
+	dbhelper.BindParamInt(mPlayerId) ;
 
-	/*
-	DbHelper dbh3(SQL_DeleteTest) ;
-	dbh3.BindParamInt(1237) ;
-	dbh3.FetchRow() ;
-	*/
+	if ( RESULT_ERROR == dbhelper.FetchRow() )
+		return false ;
+
+	return true ;
+
+}

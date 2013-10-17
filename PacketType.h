@@ -1,7 +1,9 @@
 #pragma once
 
-#define MAX_NAME_LEN	32
 #define MAX_CHAT_LEN	1024
+
+#define MAX_NAME_LEN	30
+#define MAX_COMMENT_LEN	40
 
 enum PacketTypes
 {
