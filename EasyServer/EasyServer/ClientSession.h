@@ -22,8 +22,8 @@ struct OverlappedIO : public OVERLAPPED
 class ClientSession
 {
 public:
-	ClientSession(SOCKET sock, int idx)
-		: mConnected(false), mSocket(sock), mClientId(idx), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
+	ClientSession(SOCKET sock)
+		: mConnected(false), mLogon(false), mSocket(sock), mPlayerId(-1), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
 		, mPosX(0), mPosY(0), mPosZ(0)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
@@ -32,7 +32,7 @@ public:
 	~ClientSession() {}
 
 
-	void	LoginDone(double x, double y, double z, const char* name) ;
+	void	LoginDone(int pid, double x, double y, double z, const char* name) ;
 
 	void	OnRead(size_t len) ;
 	void	OnWriteComplete(size_t len) ;
@@ -63,13 +63,14 @@ private:
 	double			mPosX ;
 	double			mPosY ;
 	double			mPosZ ;
-	char			mPlayerName[MAX_PLAYER_NAME_LEN] ;
+	char			mPlayerName[MAX_NAME_LEN] ;
 
 private:
 	bool			mConnected ;
+	bool			mLogon ;
 	SOCKET			mSocket ;
 
-	int				mClientId ;
+	int				mPlayerId ;
 	SOCKADDR_IN		mClientAddr ;
 
 	CircularBuffer	mSendBuffer ;

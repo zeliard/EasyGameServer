@@ -50,7 +50,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	SOCKADDR_IN serveraddr ;
 	ZeroMemory(&serveraddr, sizeof(serveraddr)) ;
 	serveraddr.sin_family = AF_INET ;
-	serveraddr.sin_port = htons(9001) ;
+	serveraddr.sin_port = htons(LISTEN_PORT) ;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY) ;
 	int ret = bind(listenSocket, (SOCKADDR*)&serveraddr, sizeof(serveraddr)) ;
 	if (ret == SOCKET_ERROR)

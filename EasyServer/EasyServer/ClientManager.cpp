@@ -10,10 +10,7 @@ ClientManager* GClientManager = nullptr ;
 
 ClientSession* ClientManager::CreateClient(SOCKET sock)
 {
-	if ( ++mClientIndex == INT_MAX )
-		mClientIndex= 0 ;
-	
-	ClientSession* client = new ClientSession(sock, mClientIndex) ;
+	ClientSession* client = new ClientSession(sock) ;
 	mClientList.insert(ClientList::value_type(sock, client)) ;
 
 	return client ;

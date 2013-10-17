@@ -2,6 +2,7 @@
 
 #include <WinSock2.h>
 #include "Config.h"
+#include "..\..\PacketType.h"
 #include "ObjectPool.h"
 
 
@@ -39,6 +40,6 @@ struct LoadPlayerDataContext : public DatabaseJobContext, public ObjectPool<Load
 	double	mPosX ;
 	double	mPosY ;
 	double	mPosZ ;
-	char	mPlayerName[MAX_PLAYER_NAME_LEN] ;
+	char	mPlayerName[MAX_NAME_LEN] ;
 
 } ;

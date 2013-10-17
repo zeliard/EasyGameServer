@@ -83,35 +83,30 @@ void ClientSession::OnRead(size_t len)
 		/// 패킷 핸들링
 		switch ( header.mType )
 		{
-		case PKT_CS_PING:
+		case PKT_CS_LOGIN:
 			{
-				TestPing inPacket ;
+				LoginResult inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 
-				//TEST: player load
+				/// 로그인은 DB 작업을 거쳐야 하기 때문에 DB 작업 요청한다.
 				LoadPlayerDataContext* newDbJob = new LoadPlayerDataContext(mSocket, inPacket.mPlayerId) ;
 				GDatabaseJobManager->PushDatabaseJobRequest(newDbJob) ;
-
 			
 			}
 			break ;
 
-		case PKT_CS_PING2:
+		case PKT_CS_CHAT:
 			{
-				TestPing2 inPacket ;
+				ChatBroadcastRequest inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
-
-				//printf("[CLIENT] %s \n", inPacket.mData ) ;
 				
-				TestPong2 outPacket ;
-				outPacket.mPlayerId = mClientId ;
-				outPacket.mPosX = 0.1111f + inPacket.mPosX ;
-				outPacket.mPosY = 0.2222f + inPacket.mPosY ;
-				outPacket.mPosZ = 0.3333f + inPacket.mPosZ ;
-				outPacket.mResult = true ;
-
-				/// CS_PING2 오면 위치만 좀 바꿔서 reply 하는 것 테스트
-				if ( !Send(&outPacket) )
+				ChatBroadcastResult outPacket ;
+				outPacket.mPlayerId = inPacket.mPlayerId ;
+				strcpy_s(outPacket.mName, mPlayerName) ;
+				strcpy_s(outPacket.mChat, inPacket.mChat) ;
+		
+				/// 채팅은 바로 방송 하면 끝
+				if ( !Broadcast(&outPacket) )
 					return ;
  
 			}
@@ -199,8 +194,6 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 void ClientSession::OnTick()
 {
 	/// 클라별로 주기적으로 해야될 일은 여기에
-	//printf("DEBUG: Client[%d] OnTick %u \n", mClientId, GetTickCount()) ;
-	
 	
 }
 
@@ -208,18 +201,20 @@ void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 {
 	CRASH_ASSERT( mSocket == result->mSockKey ) ;
 	
-	//TODO: DB 작업 끝난 처리는 여기에
 
-	//TEST
-	if ( typeid(*result) == typeid(LoadPlayerDataContext) )
+	const type_info& typeInfo = typeid(*result) ;
+
+	if ( typeInfo == typeid(LoadPlayerDataContext) )
 	{
 		LoadPlayerDataContext* login = dynamic_cast<LoadPlayerDataContext*>(result) ;
 
-		LoginDone(login->mPosX, login->mPosY, login->mPosZ, login->mPlayerName) ;
-
-		printf("DEBUG: DB JOB DONE. Client[%d] \n", mClientId) ;
-	}
+		LoginDone(login->mPlayerId, login->mPosX, login->mPosY, login->mPosZ, login->mPlayerName) ;
 	
+	}
+	else
+	{
+		CRASH_ASSERT(false) ;
+	}
 	
 
 	delete result ;
@@ -227,25 +222,22 @@ void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 }
 
 
-void ClientSession::LoginDone(double x, double y, double z, const char* name)
+void ClientSession::LoginDone(int pid, double x, double y, double z, const char* name)
 {
-	mPosX = x ;
-	mPosY = y ;
-	mPosZ = z ;
+	LoginResult outPacket ;
+
+	outPacket.mPlayerId = mPlayerId = pid ;
+	outPacket.mPosX = mPosX = x ;
+	outPacket.mPosY = mPosY = y ;
+	outPacket.mPosZ = mPosZ = z ;
 	strcpy_s(mPlayerName, name) ;
+	strcpy_s(outPacket.mName, name) ;
 
-	//TEST: CS_PING 오면 모든 접속중인 클라에게 방송하는 것 테스트
-	TestPong outPacket ;
+	Send(&outPacket) ;
 
-	sprintf_s(outPacket.mData, "SC_PONG Broadcast fromClient[%s]: %.4f, %.4f, %.4f \n",
-		mPlayerName, mPosX, mPosY, mPosZ ) ;
-	
-	outPacket.mResult = true ;
-	outPacket.mPlayerId = mClientId ;
-	
-	if ( !Broadcast(&outPacket) )
-		return ;
+	mLogon = true ;
 }
+
 ///////////////////////////////////////////////////////////
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)

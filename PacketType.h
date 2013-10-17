@@ -1,15 +1,17 @@
 #pragma once
 
+#define MAX_NAME_LEN	32
+#define MAX_CHAT_LEN	1024
 
 enum PacketTypes
 {
 	PKT_NONE	= 0,
 	
-	PKT_CS_PING	= 1,
-	PKT_SC_PONG	= 2,
+	PKT_CS_LOGIN	= 1,
+	PKT_SC_LOGIN	= 2,
 	
-	PKT_CS_PING2= 3,
-	PKT_SC_PONG2= 4,
+	PKT_CS_CHAT		= 3,
+	PKT_SC_CHAT		= 4,
 	
 } ;
 
@@ -24,78 +26,66 @@ struct PacketHeader
 
 
 
-struct TestPing : public PacketHeader
+struct LoginRequest : public PacketHeader
 {
-	TestPing()
+	LoginRequest()
 	{
-		mSize = sizeof(TestPing) ;
-		mType = PKT_CS_PING ;
+		mSize = sizeof(LoginRequest) ;
+		mType = PKT_CS_LOGIN ;
 		mPlayerId = -1 ;
-		mPosX = 0 ;
-		mPosY = 0 ;
-		mPosZ = 0 ;
 	}
 
 	int	mPlayerId ;
-	float mPosX ;
-	float mPosY ;
-	float mPosZ ;
 } ;
 
-struct TestPong : public PacketHeader
+struct LoginResult : public PacketHeader
 {
-	TestPong()
+	LoginResult()
 	{
-		mSize = sizeof(TestPong) ;
-		mType = PKT_SC_PONG ;
+		mSize = sizeof(LoginResult) ;
+		mType = PKT_SC_LOGIN ;
 		mPlayerId = -1 ;
-		mResult = false ;
-		memset(mData, 0, 1024) ;
+		memset(mName, 0, MAX_NAME_LEN) ;
 	}
-	int	mPlayerId ;
-	char mData[1024] ;
-	bool mResult ;
+
+	int		mPlayerId ;
+	double	mPosX ;
+	double	mPosY ;
+	double	mPosZ ;
+	char	mName[MAX_NAME_LEN] ;
+
 } ;
 
-struct TestPing2 : public PacketHeader
+struct ChatBroadcastRequest : public PacketHeader
 {
-	TestPing2()
+	ChatBroadcastRequest()
 	{
-		mSize = sizeof(TestPing2) ;
-		mType = PKT_CS_PING2 ;
+		mSize = sizeof(ChatBroadcastRequest) ;
+		mType = PKT_CS_CHAT ;
 		mPlayerId = -1 ;
-		mPosX = 0 ;
-		mPosY = 0 ;
-		mPosZ = 0 ;
-		memset(mData, 0, 1024) ;
+	
+		memset(mChat, 0, MAX_CHAT_LEN) ;
 	}
 
 	int	mPlayerId ;
-	char mData[1024] ;
-	float mPosX ;
-	float mPosY ;
-	float mPosZ ;
+	char mChat[1024] ;
 } ;
 
-struct TestPong2 : public PacketHeader
+struct ChatBroadcastResult : public PacketHeader
 {
-	TestPong2()
+	ChatBroadcastResult()
 	{
-		mSize = sizeof(TestPong2) ;
-		mType = PKT_SC_PONG2 ;
+		mSize = sizeof(ChatBroadcastResult) ;
+		mType = PKT_SC_CHAT ;
 		mPlayerId = -1 ;
-		mResult = false ;
-		mPosX = 0 ;
-		mPosY = 0 ;
-		mPosZ = 0 ;
+		
+		memset(mName, 0, MAX_NAME_LEN) ;
+		memset(mChat, 0, MAX_CHAT_LEN) ;
 	}
 	
 	int	mPlayerId ;
-	bool mResult ;
-	float mPosX ;
-	float mPosY ;
-	float mPosZ ;
-
+	char mName[MAX_NAME_LEN] ;
+	char mChat[MAX_CHAT_LEN] ;
 } ;
 
 #pragma pack(pop)
