@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "DatabaseJobContext.h"
 #include "SQLStatement.h"
 #include "DbHelper.h"
@@ -10,7 +10,7 @@ bool LoadPlayerDataContext::OnExecute()
 	DbHelper dbhelper(SQL_SelectTest) ;
 	dbhelper.BindParamInt(mPlayerId) ;
 
-	/// µ¥ÀÌÅÍ°¡ ¾ø³×?
+	/// ë°ì´í„°ê°€ ì—†ë„¤?
 	if ( RESULT_ROW != dbhelper.FetchRow() )
 		return false ;
 

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <atomic>
 
@@ -9,10 +9,10 @@ public:
 	SPSCQueue() :mHeadPos(0), mTailPos(0) {}
 	~SPSCQueue() {}
 
-	/// ¼º°ø½Ã true, ²ËÃ¡À» °æ¿ì false
+	/// ì„±ê³µì‹œ true, ê½‰ì°¼ì„ ê²½ìš° false
 	bool PushBack(const TElem& item) ;
 
-	/// ¼º¼Û½Ã true, ºñ¾îÀÖÀ» °æ¿ì false
+	/// ì„±ê³µì‹œ true, ë¹„ì–´ìˆì„ ê²½ìš° false
 	bool PopFront(TElem& item) ;
 
 private:
@@ -27,16 +27,16 @@ private:
 template<typename TElem, int QSize>
 bool SPSCQueue<TElem, QSize>::PushBack(const TElem& item)
 {
-	/// Å¥ÀÇ µÚ¿¡´Ù »ğÀÔ
+	/// íì˜ ë’¤ì—ë‹¤ ì‚½ì…
 
 	int currTailPos = mTailPos.load(std::memory_order_relaxed) ; 
 
-	/// Å¥ÀÇ ¸¶Áö¸· ¿ø¼Ò´Â full/empty¿©ºÎ¸¦ °¡¸®±â À§ÇÑ ºó °ø°£À¸·Î ÇØ³õ±â ¶§¹®¿¡ QSize+1ÇÑ´Ù
+	/// íì˜ ë§ˆì§€ë§‰ ì›ì†ŒëŠ” full/emptyì—¬ë¶€ë¥¼ ê°€ë¦¬ê¸° ìœ„í•œ ë¹ˆ ê³µê°„ìœ¼ë¡œ í•´ë†“ê¸° ë•Œë¬¸ì— QSize+1í•œë‹¤
 	int nextTailPos = (currTailPos + 1) % (QSize + 1) ; 
 
 	if ( nextTailPos == mHeadPos.load(std::memory_order_acquire) )
 	{
-		/// tail+1 == headÀÎ °æ¿ìÀÌ¹Ç·Î Å¥ ²ËÃ¡´Ù
+		/// tail+1 == headì¸ ê²½ìš°ì´ë¯€ë¡œ í ê½‰ì°¼ë‹¤
 		return false ;
 	}
 
@@ -53,13 +53,13 @@ bool SPSCQueue<TElem, QSize>::PopFront(TElem& item)
 
 	if ( currHeadPos == mTailPos.load(std::memory_order_acquire) ) 
 	{
-		/// head == tailÀÎ °æ¿ìÀÌ¹Ç·Î Å¥¿¡ ³»¿ëÀÌ ¾ø´Ù 
+		/// head == tailì¸ ê²½ìš°ì´ë¯€ë¡œ íì— ë‚´ìš©ì´ ì—†ë‹¤ 
 		return false ;
 	}
 	
 	item = mQueueArray[currHeadPos] ;
 
-	///  push¿¡¼­¿Í °°Àº ÀÌÀ¯·Î..  QSize+1 ÇØÁÖ´Â°ÅÀÓ
+	///  pushì—ì„œì™€ ê°™ì€ ì´ìœ ë¡œ..  QSize+1 í•´ì£¼ëŠ”ê±°ì„
 	int nextHeadPos = (currHeadPos + 1) % (QSize + 1) ;
 
 	mHeadPos.store(nextHeadPos, std::memory_order_release) ; 
