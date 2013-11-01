@@ -85,7 +85,7 @@ void ClientSession::OnRead(size_t len)
 		{
 		case PKT_CS_LOGIN:
 			{
-				LoginResult inPacket ;
+				LoginRequest inPacket ;
 				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
 
 				/// 로그인은 DB 작업을 거쳐야 하기 때문에 DB 작업 요청한다.
