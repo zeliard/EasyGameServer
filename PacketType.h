@@ -70,7 +70,7 @@ struct ChatBroadcastRequest : public PacketHeader
 	}
 
 	int	mPlayerId ;
-	char mChat[1024] ;
+	char mChat[MAX_CHAT_LEN] ;
 } ;
 
 struct ChatBroadcastResult : public PacketHeader
