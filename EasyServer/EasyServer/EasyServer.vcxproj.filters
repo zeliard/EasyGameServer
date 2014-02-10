@@ -67,6 +67,9 @@
     <ClInclude Include="Config.h">
       <Filter>SourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="ProducerConsumerQueue.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
