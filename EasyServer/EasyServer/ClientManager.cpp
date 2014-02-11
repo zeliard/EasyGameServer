@@ -28,7 +28,7 @@ void ClientManager::BroadcastPacket(ClientSession* from, PacketHeader* pkt)
 		if ( from == client )
 			continue ;
 		
-		client->Send(pkt) ;
+		client->SendRequest(pkt) ;
 	}
 }
 
@@ -51,7 +51,9 @@ void ClientManager::OnPeriodWork()
 
 	/// 처리 완료된 DB 작업들 각각의 Client로 dispatch
 	DispatchDatabaseJobResults() ;
-		
+
+	/// 최종적으로 클라이언트들에 쌓인 send 요청 처리
+	FlushClientSend();
 }
 
 void ClientManager::CollectGarbageSessions()
@@ -127,6 +129,18 @@ void ClientManager::DispatchDatabaseJobResults()
 		/// 완료된 DB 작업 컨텍스트는 삭제해주자
 		DatabaseJobContext* toBeDelete = dbResult ;
 		delete toBeDelete ;
+	}
+}
+
+void ClientManager::FlushClientSend()
+{
+	for (auto& it : mClientList)
+	{
+		ClientSession* client = it.second;
+		if (false == client->SendFlush())
+		{
+			client->Disconnect();
+		}
 	}
 }
 

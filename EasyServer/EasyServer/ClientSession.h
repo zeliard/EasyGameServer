@@ -40,7 +40,7 @@ public:
 	
 	bool	PostRecv() ;
 
-	bool	Send(PacketHeader* pkt) ;
+	bool	SendRequest(PacketHeader* pkt) ;
 	bool	Broadcast(PacketHeader* pkt) ;
 
 	void	Disconnect() ;
@@ -56,6 +56,8 @@ public:
 	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
 
 private:
+
+	bool	SendFlush(); ///< Send요청 중인것들 모아서 보냄
 	void	OnTick() ;
 
 	void	LoginDone(int pid, double x, double y, double z, const char* name) ;

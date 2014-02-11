@@ -123,10 +123,9 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 
 	LARGE_INTEGER liDueTime ;
 	liDueTime.QuadPart = -10000000 ; ///< 1초 후부터 동작
-	if ( !SetWaitableTimer(hTimer, &liDueTime, 100, TimerProc, NULL, TRUE) )
+	if ( !SetWaitableTimer(hTimer, &liDueTime, 10, TimerProc, NULL, TRUE) )
 		return -1 ;
 		
-
 	while ( true )
 	{
 		/// accept or IO/Timer completion   대기
@@ -166,14 +165,8 @@ unsigned int WINAPI DatabaseHandlingThread( LPVOID lpParam )
 {
 	LThreadType = THREAD_DATABASE ;
 
-	while ( true )
-	{
-		/// 기본적으로 polling 하면서 Job이 있다면 처리 하는 방식
-		GDatabaseJobManager->ExecuteDatabaseJobs() ;
-
-		Sleep(1) ;
-	}
-
+	GDatabaseJobManager->ExecuteDatabaseJobs() ;
+	
 	return 0 ;
 }
 

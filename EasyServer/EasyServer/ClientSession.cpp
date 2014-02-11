@@ -135,46 +135,52 @@ void ClientSession::OnRead(size_t len)
 	}
 }
 
-bool ClientSession::Send(PacketHeader* pkt)
+bool ClientSession::SendRequest(PacketHeader* pkt)
 {
 	if ( !IsConnected() )
 		return false ;
 
-	/// 버퍼 용량 부족인 경우는 끊어버림
+	/// Send 요청은 버퍼에 쌓아놨다가 한번에 보낸다.
 	if ( false == mSendBuffer.Write((char*)pkt, pkt->mSize) )
 	{
+		/// 버퍼 용량 부족인 경우는 끊어버림
 		Disconnect() ;
 		return false ;
 	}
 
-	/// 보낼 데이터가 있는지 검사
-	if ( mSendBuffer.GetContiguiousBytes() == 0 )
-	{
-		/// 방금전에 write 했는데, 데이터가 없다면 뭔가 잘못된 것
-		assert(false) ;
-		Disconnect() ;
-		return false ;
-	}
-		
-	DWORD sendbytes = 0 ;
-	DWORD flags = 0 ;
+	return true;
 
-	WSABUF buf ;
-	buf.len = (ULONG)mSendBuffer.GetContiguiousBytes() ;
-	buf.buf = (char*)mSendBuffer.GetBufferStart() ;
-	
-	memset(&mOverlappedSend, 0, sizeof(OverlappedIO)) ;
-	mOverlappedSend.mObject = this ;
+}
+
+bool ClientSession::SendFlush()
+{
+	if (!IsConnected())
+		return false;
+
+	/// 보낼 데이터가 없으면 그냥 리턴
+	if (mSendBuffer.GetContiguiousBytes() == 0)
+		return true;
+
+	DWORD sendbytes = 0;
+	DWORD flags = 0;
+
+	WSABUF buf;
+	buf.len = (ULONG)mSendBuffer.GetContiguiousBytes();
+	buf.buf = (char*)mSendBuffer.GetBufferStart();
+
+	memset(&mOverlappedSend, 0, sizeof(OverlappedIO));
+	mOverlappedSend.mObject = this;
 
 	// 비동기 입출력 시작
-	if ( SOCKET_ERROR == WSASend(mSocket, &buf, 1, &sendbytes, flags, &mOverlappedSend, SendCompletion) )
+	if (SOCKET_ERROR == WSASend(mSocket, &buf, 1, &sendbytes, flags, &mOverlappedSend, SendCompletion))
 	{
-		if ( WSAGetLastError() != WSA_IO_PENDING )
-			return false ;
+		if (WSAGetLastError() != WSA_IO_PENDING)
+			return false;
 	}
 
-	IncOverlappedRequest() ;
-	return true ;
+	IncOverlappedRequest();
+
+	return true;
 }
 
 void ClientSession::OnWriteComplete(size_t len)
@@ -192,7 +198,7 @@ void ClientSession::OnWriteComplete(size_t len)
 
 bool ClientSession::Broadcast(PacketHeader* pkt)
 {
-	if ( !Send(pkt) )
+	if ( !SendRequest(pkt) )
 		return false ;
 
 	if ( !IsConnected() )
@@ -266,7 +272,7 @@ void ClientSession::LoginDone(int pid, double x, double y, double z, const char*
 	strcpy_s(mPlayerName, name) ;
 	strcpy_s(outPacket.mName, name) ;
 
-	Send(&outPacket) ;
+	SendRequest(&outPacket) ;
 
 	mLogon = true ;
 }

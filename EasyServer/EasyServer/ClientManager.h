@@ -31,6 +31,7 @@ private:
 	void CollectGarbageSessions() ;
 	void ClientPeriodWork() ;
 	void DispatchDatabaseJobResults() ;
+	void FlushClientSend();
 
 private:
 	typedef std::map<SOCKET, ClientSession*> ClientList ;
