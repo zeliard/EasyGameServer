@@ -11,11 +11,11 @@ bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 
 	/// 소켓을 넌블러킹으로 바꾸고
 	u_long arg = 1 ;
-	::ioctlsocket(mSocket, FIONBIO, &arg) ;
+	ioctlsocket(mSocket, FIONBIO, &arg) ;
 
 	/// nagle 알고리즘 끄기
 	int opt = 1 ;
-	::setsockopt(mSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) ;
+	setsockopt(mSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int)) ;
 
 	printf("[DEBUG] Client Connected: IP=%s, PORT=%d\n", inet_ntoa(mClientAddr.sin_addr), ntohs(mClientAddr.sin_port)) ;
 	
@@ -57,8 +57,20 @@ void ClientSession::Disconnect()
 
 	printf("[DEBUG] Client Disconnected: IP=%s, PORT=%d\n", inet_ntoa(mClientAddr.sin_addr), ntohs(mClientAddr.sin_port)) ;
 
-	::shutdown(mSocket, SD_BOTH) ;
-	::closesocket(mSocket) ;
+	/// 즉각 해제
+
+	LINGER lingerOption;
+	lingerOption.l_onoff = 1;
+	lingerOption.l_linger = 0;
+
+	/// no TCP TIME_WAIT
+	if (SOCKET_ERROR == setsockopt(mSocket, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(LINGER)))
+	{
+		printf_s("[DEBUG] setsockopt linger option error: %d\n", GetLastError());
+		return;
+	}
+
+	closesocket(mSocket) ;
 
 	mConnected = false ;
 }

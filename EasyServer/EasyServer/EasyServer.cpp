@@ -44,7 +44,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		return -1 ;
 
 	int opt = 1 ;
-	::setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int) ) ;
+	setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&opt, sizeof(int) ) ;
 
 	/// bind
 	SOCKADDR_IN serveraddr ;

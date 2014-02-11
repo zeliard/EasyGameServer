@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "SPSCQueue.h"
+#include "ProducerConsumerQueue.h"
 
 struct DatabaseJobContext ;
 
@@ -12,7 +12,7 @@ public:
 
 	void ExecuteDatabaseJobs() ;
 	
-	bool PushDatabaseJobRequest(DatabaseJobContext* jobContext) ;
+	void PushDatabaseJobRequest(DatabaseJobContext* jobContext) ;
 	bool PopDatabaseJobResult(DatabaseJobContext*& jobContext) ;
 
 private:
@@ -21,8 +21,8 @@ private:
 		MAX_DB_JOB = 127 
 	} ;
 
-	SPSCQueue<DatabaseJobContext*, MAX_DB_JOB>	mDbJobRequestQueue ;
-	SPSCQueue<DatabaseJobContext*, MAX_DB_JOB>	mDbJobResultQueue ;
+	ProducerConsumerQueue<DatabaseJobContext*, MAX_DB_JOB>	mDbJobRequestQueue;
+	ProducerConsumerQueue<DatabaseJobContext*, MAX_DB_JOB>	mDbJobResultQueue;
 	
 } ;
 
