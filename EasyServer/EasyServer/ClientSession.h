@@ -1,25 +1,27 @@
 #pragma once
 
+#include <map>
+#include <WinSock2.h>
 #include "Config.h"
 #include "..\..\PacketType.h"
 #include "CircularBuffer.h"
-#include <map>
-#include <WinSock2.h>
+#include "ObjectPool.h"
 
 #define BUFSIZE	(1024*10)
+
 class ClientSession ;
 class ClientManager ;
 struct DatabaseJobContext ;
 
 struct OverlappedIO : public OVERLAPPED
 {
-	OverlappedIO() :mObject(nullptr)
+	OverlappedIO() : mObject(nullptr)
 	{}
 
 	ClientSession* mObject ;
 } ;
 
-class ClientSession
+class ClientSession : public ObjectPool<ClientSession>
 {
 public:
 	ClientSession(SOCKET sock)

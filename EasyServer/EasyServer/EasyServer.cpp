@@ -13,7 +13,6 @@
 #pragma comment(lib,"ws2_32.lib")
 
 
-
 SOCKET g_AcceptedSocket = NULL ;
 
 __declspec(thread) int LThreadType = -1 ;
@@ -66,12 +65,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (hEvent == NULL)
 		return -1 ;
 
-	/// I/O Thread
+	/// Client Logic + I/O Thread
 	DWORD dwThreadId ;
 	HANDLE hThread = (HANDLE)_beginthreadex (NULL, 0, ClientHandlingThread, hEvent, 0, (unsigned int*)&dwThreadId) ;
     if (hThread == NULL)
 		return -1 ;
-
 
 	/// DB Thread
 	HANDLE hDbThread = (HANDLE)_beginthreadex (NULL, 0, DatabaseHandlingThread, NULL, 0, (unsigned int*)&dwThreadId) ;
@@ -134,9 +132,7 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 		/// client connected
 		if ( result == WAIT_OBJECT_0 )
 		{
-	
 			/// 소켓 정보 구조체 할당과 초기화
-			
 			ClientSession* client = GClientManager->CreateClient(g_AcceptedSocket) ;
 			
 			SOCKADDR_IN clientaddr ;

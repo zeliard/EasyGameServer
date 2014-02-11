@@ -10,6 +10,8 @@ ClientManager* GClientManager = nullptr ;
 
 ClientSession* ClientManager::CreateClient(SOCKET sock)
 {
+	assert(LThreadType == THREAD_CLIENT);
+
 	ClientSession* client = new ClientSession(sock) ;
 	mClientList.insert(ClientList::value_type(sock, client)) ;
 
