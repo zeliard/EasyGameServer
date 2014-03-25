@@ -14,6 +14,7 @@
 
 
 SOCKET g_AcceptedSocket = NULL ;
+bool g_DidRegisterAcceptedSocket = false;
 
 __declspec(thread) int LThreadType = -1 ;
 
@@ -79,6 +80,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	/// accept loop
 	while ( true )
 	{
+		if(g_DidRegisterAcceptedSocket == true)
+			continue;
 		g_AcceptedSocket = accept(listenSocket, NULL, NULL) ;
 		if ( g_AcceptedSocket == INVALID_SOCKET )
 		{
@@ -89,6 +92,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		/// accept event fire!
 		if ( !SetEvent(hEvent) )
 		{
+			g_DidRegisterAcceptedSocket = true;
 			printf("SetEvent error: %d\n",GetLastError()) ;
 			break ;
 		}
@@ -144,6 +148,8 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 			{
 				client->Disconnect() ;
 			}
+
+			g_DidRegisterAcceptedSocket = false;
 		
 			continue ; ///< 다시 대기로
 		}
