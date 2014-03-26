@@ -23,6 +23,8 @@ public:
 	void CreatePlayer(int pid, double x, double y, double z, const char* name, const char* comment) ;
 	void DeletePlayer(int pid) ;
 
+	void FlushClientSend();
+
 private:
 	void CreatePlayerDone(DatabaseJobContext* dbJob) ;
 	void DeletePlayerDone(DatabaseJobContext* dbJob) ;
@@ -31,7 +33,7 @@ private:
 	void CollectGarbageSessions() ;
 	void ClientPeriodWork() ;
 	void DispatchDatabaseJobResults() ;
-	void FlushClientSend();
+	
 
 private:
 	typedef std::map<SOCKET, ClientSession*> ClientList ;

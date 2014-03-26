@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "ClientSession.h"
 #include "..\..\PacketType.h"
 #include "ClientManager.h"
@@ -180,6 +180,8 @@ bool ClientSession::SendFlush()
 
 	IncOverlappedRequest();
 
+	assert(buf.len == sendbytes);
+
 	return true;
 }
 
@@ -187,13 +189,6 @@ void ClientSession::OnWriteComplete(size_t len)
 {
 	/// 보내기 완료한 데이터는 버퍼에서 제거
 	mSendBuffer.Remove(len) ;
-
-	/// 얼래? 덜 보낸 경우도 있나? (커널의 send queue가 꽉찼거나, Send Completion이전에 또 send 한 경우?)
-	if ( mSendBuffer.GetContiguiousBytes() > 0 )
-	{
-		assert(false) ;
-	}
-
 }
 
 bool ClientSession::Broadcast(PacketHeader* pkt)

@@ -13,10 +13,9 @@
 #pragma comment(lib,"ws2_32.lib")
 
 
-SOCKET g_AcceptedSocket = NULL ;
-
 __declspec(thread) int LThreadType = -1 ;
 
+typedef ProducerConsumerQueue<SOCKET, 100> PendingAcceptList;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -60,14 +59,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (ret == SOCKET_ERROR)
 		return -1 ;
 
-	/// auto-reset event
-	HANDLE hEvent = CreateEvent(NULL, FALSE, FALSE, NULL) ;
-	if (hEvent == NULL)
-		return -1 ;
+	/// accepting list
+	PendingAcceptList pendingAcceptList;
 
 	/// Client Logic + I/O Thread
 	DWORD dwThreadId ;
-	HANDLE hThread = (HANDLE)_beginthreadex (NULL, 0, ClientHandlingThread, hEvent, 0, (unsigned int*)&dwThreadId) ;
+	HANDLE hThread = (HANDLE)_beginthreadex(NULL, 0, ClientHandlingThread, (LPVOID)&pendingAcceptList, 0, (unsigned int*)&dwThreadId);
     if (hThread == NULL)
 		return -1 ;
 
@@ -79,23 +76,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	/// accept loop
 	while ( true )
 	{
-		g_AcceptedSocket = accept(listenSocket, NULL, NULL) ;
-		if ( g_AcceptedSocket == INVALID_SOCKET )
+		SOCKET acceptedSocket = accept(listenSocket, NULL, NULL) ;
+		if (acceptedSocket == INVALID_SOCKET)
 		{
 			printf("accept: invalid socket\n") ;
 			continue ;
 		}
 
-		/// accept event fire!
-		if ( !SetEvent(hEvent) )
-		{
-			printf("SetEvent error: %d\n",GetLastError()) ;
-			break ;
-		}
+		pendingAcceptList.Produce(acceptedSocket);
 	}
 
 	CloseHandle( hThread ) ;
-	CloseHandle( hEvent ) ;
 	CloseHandle( hDbThread ) ;
 
 	// 윈속 종료
@@ -112,7 +103,7 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 {
 	LThreadType = THREAD_CLIENT ;
 
-	HANDLE hEvent = (HANDLE)lpParam ;
+	PendingAcceptList* pAcceptList = (PendingAcceptList*)lpParam ;
 
 	/// Timer
 	HANDLE hTimer = CreateWaitableTimer(NULL, FALSE, NULL) ;
@@ -121,36 +112,37 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 
 	LARGE_INTEGER liDueTime ;
 	liDueTime.QuadPart = -10000000 ; ///< 1초 후부터 동작
-	if ( !SetWaitableTimer(hTimer, &liDueTime, 10, TimerProc, NULL, TRUE) )
+	if ( !SetWaitableTimer(hTimer, &liDueTime, 100, TimerProc, NULL, TRUE) )
 		return -1 ;
 		
 	while ( true )
 	{
-		/// accept or IO/Timer completion   대기
-		DWORD result = WaitForSingleObjectEx(hEvent, INFINITE, TRUE) ;
+		SOCKET acceptSock = NULL;
 
-		/// client connected
-		if ( result == WAIT_OBJECT_0 )
+		/// 새로 접속한 클라이언트 처리
+		if (pAcceptList->Consume(acceptSock, false))
 		{
 			/// 소켓 정보 구조체 할당과 초기화
-			ClientSession* client = GClientManager->CreateClient(g_AcceptedSocket) ;
-			
-			SOCKADDR_IN clientaddr ;
-			int addrlen = sizeof(clientaddr) ;
-			getpeername(g_AcceptedSocket, (SOCKADDR*)&clientaddr, &addrlen) ;
+			ClientSession* client = GClientManager->CreateClient(acceptSock);
+
+			SOCKADDR_IN clientaddr;
+			int addrlen = sizeof(clientaddr);
+			getpeername(acceptSock, (SOCKADDR*)&clientaddr, &addrlen);
 
 			// 클라 접속 처리
-			if ( false == client->OnConnect(&clientaddr) )
+			if (false == client->OnConnect(&clientaddr))
 			{
-				client->Disconnect() ;
+				client->Disconnect();
 			}
-		
-			continue ; ///< 다시 대기로
+
+			continue; ///< 다시 대기로
 		}
 
-		// APC에 있던 completion이 아니라면 에러다
-		if ( result != WAIT_IO_COMPLETION )
-			return -1 ;
+		/// 최종적으로 클라이언트들에 쌓인 send 요청 처리
+		GClientManager->FlushClientSend();
+
+		/// APC Queue에 쌓인 작업들 처리
+		SleepEx(INFINITE, TRUE);
 	}
 
 	CloseHandle( hTimer ) ;

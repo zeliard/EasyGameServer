@@ -53,9 +53,6 @@ void ClientManager::OnPeriodWork()
 
 	/// 처리 완료된 DB 작업들 각각의 Client로 dispatch
 	DispatchDatabaseJobResults() ;
-
-	/// 최종적으로 클라이언트들에 쌓인 send 요청 처리
-	FlushClientSend();
 }
 
 void ClientManager::CollectGarbageSessions()
