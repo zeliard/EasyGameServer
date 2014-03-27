@@ -57,6 +57,10 @@ public:
 	void	DecOverlappedRequest()		{ --mOverlappedRequested ; }
 	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
 
+public:
+	void	HandleLoginRequest(LoginRequest& inPacket);
+	void	HandleChatRequest(ChatBroadcastRequest& inPacket);
+
 private:
 
 	bool	SendFlush(); ///< Send요청 중인것들 모아서 보냄

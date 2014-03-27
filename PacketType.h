@@ -14,7 +14,8 @@ enum PacketTypes
 	
 	PKT_CS_CHAT		= 3,
 	PKT_SC_CHAT		= 4,
-	
+
+	PKT_MAX	= 1024
 } ;
 
 #pragma pack(push, 1)

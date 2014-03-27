@@ -5,6 +5,44 @@
 #include "DatabaseJobContext.h"
 #include "DatabaseJobManager.h"
 
+//@{ Handler Helper
+
+typedef void (*HandlerFunc)(ClientSession* session, PacketHeader& pktBase) ;
+
+static HandlerFunc HandlerTable[PKT_MAX];
+
+static void DefaultHandler(ClientSession* session, PacketHeader& pktBase)
+{
+	assert(false);
+	session->Disconnect();
+}
+
+struct InitializeHandlers
+{
+	InitializeHandlers()
+	{
+		for (int i = 0; i < PKT_MAX; ++i)
+			HandlerTable[i] = DefaultHandler;
+	}
+} _init_handlers_;
+
+struct RegisterHandler
+{
+	RegisterHandler(int pktType, HandlerFunc handler)
+	{
+		HandlerTable[pktType] = handler;
+	}
+};
+
+#define REGISTER_HANDLER(PKT_TYPE)	\
+	static void Handler_##PKT_TYPE(ClientSession* session, PacketHeader& pktBase); \
+	static RegisterHandler _register_##PKT_TYPE(PKT_TYPE, Handler_##PKT_TYPE); \
+	static void Handler_##PKT_TYPE(ClientSession* session, PacketHeader& pktBase)
+
+//@}
+
+
+
 bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 {
 	memcpy(&mClientAddr, addr, sizeof(SOCKADDR_IN)) ;
@@ -92,46 +130,15 @@ void ClientSession::OnRead(size_t len)
 		if ( mRecvBuffer.GetStoredSize() < header.mSize )
 			return ;
 
-		/// 패킷 핸들링
-		switch ( header.mType )
-		{
-		case PKT_CS_LOGIN:
-			{
-				LoginRequest inPacket ;
-				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
-
-				/// 로그인은 DB 작업을 거쳐야 하기 때문에 DB 작업 요청한다.
-				LoadPlayerDataContext* newDbJob = new LoadPlayerDataContext(mSocket, inPacket.mPlayerId) ;
-				GDatabaseJobManager->PushDatabaseJobRequest(newDbJob) ;
-			
-			}
-			break ;
-
-		case PKT_CS_CHAT:
-			{
-				ChatBroadcastRequest inPacket ;
-				mRecvBuffer.Read((char*)&inPacket, header.mSize) ;
-				
-				ChatBroadcastResult outPacket ;
-				outPacket.mPlayerId = inPacket.mPlayerId ;
-				strcpy_s(outPacket.mName, mPlayerName) ;
-				strcpy_s(outPacket.mChat, inPacket.mChat) ;
 		
-				/// 채팅은 바로 방송 하면 끝
-				if ( !Broadcast(&outPacket) )
-					return ;
- 
-			}
-			break ;
-
-		default:
-			{
-				/// 여기 들어오면 이상한 패킷 보낸거다.
-				Disconnect() ;
-				return ;
-			}
-			break ;
+		if (header.mType >= PKT_MAX || header.mType <= PKT_NONE)
+		{
+			Disconnect();
+			return;
 		}
+
+		/// packet dispatch...
+		HandlerTable[header.mType](this, header);
 	}
 }
 
@@ -272,8 +279,6 @@ void ClientSession::LoginDone(int pid, double x, double y, double z, const char*
 	mLogon = true ;
 }
 
-
-
 ///////////////////////////////////////////////////////////
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
@@ -323,4 +328,46 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 	fromClient->OnWriteComplete(cbTransferred) ;
 
 }
+
+
+//////////////////////////////////////////////////////////////////
+
+
+REGISTER_HANDLER(PKT_CS_LOGIN)
+{
+	LoginRequest inPacket = static_cast<LoginRequest&>(pktBase) ;
+	session->HandleLoginRequest(inPacket);
+}
+
+void ClientSession::HandleLoginRequest(LoginRequest& inPacket)
+{
+	mRecvBuffer.Read((char*)&inPacket, inPacket.mSize);
+
+	/// 로그인은 DB 작업을 거쳐야 하기 때문에 DB 작업 요청한다.
+	LoadPlayerDataContext* newDbJob = new LoadPlayerDataContext(mSocket, inPacket.mPlayerId);
+	GDatabaseJobManager->PushDatabaseJobRequest(newDbJob);
+}
+
+REGISTER_HANDLER(PKT_CS_CHAT)
+{
+	ChatBroadcastRequest inPacket = static_cast<ChatBroadcastRequest&>(pktBase) ;
+	session->HandleChatRequest(inPacket);
+}
+
+void ClientSession::HandleChatRequest(ChatBroadcastRequest& inPacket)
+{
+	mRecvBuffer.Read((char*)&inPacket, inPacket.mSize);
+
+	ChatBroadcastResult outPacket;
+	outPacket.mPlayerId = inPacket.mPlayerId;
+	strcpy_s(outPacket.mName, mPlayerName);
+	strcpy_s(outPacket.mChat, inPacket.mChat);
+
+	/// 채팅은 바로 방송 하면 끝
+	if (!Broadcast(&outPacket))
+	{
+		Disconnect();
+	}
+}
+
 
