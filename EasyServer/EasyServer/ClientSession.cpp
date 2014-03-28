@@ -187,7 +187,7 @@ bool ClientSession::SendFlush()
 
 	IncOverlappedRequest();
 
-	assert(buf.len == sendbytes);
+	//assert(buf.len == sendbytes);
 
 	return true;
 }
