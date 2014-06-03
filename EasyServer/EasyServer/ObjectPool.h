@@ -2,7 +2,6 @@
 
 #include "Exception.h"
 
-/// TOBJECT는 가상소멸자 호출 보장 못함 (확실히 알고 쓸 것)
 template <class TOBJECT, int ALLOC_COUNT=10>
 class ObjectPool
 {
