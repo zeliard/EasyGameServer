@@ -20,8 +20,7 @@ EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다.
    Circular Byte Buffer를 구성하고 다루는 법,
    NAGLE (TCP_NODELAY) 컨트롤 
    
-3. 게임 클라이언트에서의 네트워크 처리 방법,
-   Asyncselect를 이용한 asynchronous non-blocking 방식의 클라이언트 구조
+3. cocos2d-x 게임 클라이언트에서의 네트워킹 방법 (send/recv 및 TCP 스트림 핸들링)
 
 4. SQLite3을 이용한 Database 처리 방법,
    C++상에서의 데이터베이스 제어,
