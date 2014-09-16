@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_CHAT_LEN	1024
+#define MAX_CHAT_LEN	256
 
 #define MAX_NAME_LEN	30
 #define MAX_COMMENT_LEN	40
@@ -12,8 +12,11 @@ enum PacketTypes
 	PKT_CS_LOGIN	= 1,
 	PKT_SC_LOGIN	= 2,
 	
-	PKT_CS_CHAT		= 3,
-	PKT_SC_CHAT		= 4,
+	PKT_CS_CHAT		= 11,
+	PKT_SC_CHAT		= 12,
+
+	PKT_CS_MOVE		= 21,
+	PKT_SC_MOVE		= 22,
 
 	PKT_MAX	= 1024
 } ;
@@ -52,9 +55,8 @@ struct LoginResult : public PacketHeader
 	}
 
 	int		mPlayerId ;
-	double	mPosX ;
-	double	mPosY ;
-	double	mPosZ ;
+	float	mPosX ;
+	float	mPosY ;
 	char	mName[MAX_NAME_LEN] ;
 
 } ;
@@ -90,5 +92,40 @@ struct ChatBroadcastResult : public PacketHeader
 	char mName[MAX_NAME_LEN] ;
 	char mChat[MAX_CHAT_LEN] ;
 } ;
+
+
+struct MoveRequest : public PacketHeader
+{
+	MoveRequest()
+	{
+		mSize = sizeof(MoveRequest);
+		mType = PKT_CS_MOVE;
+		mPlayerId = -1;
+		mPosX = 0;
+		mPosY = 0;
+	}
+
+	int		mPlayerId;
+	float	mPosX;
+	float	mPosY;
+};
+
+struct MoveBroadcastResult : public PacketHeader
+{
+	MoveBroadcastResult()
+	{
+		mSize = sizeof(MoveBroadcastResult);
+		mType = PKT_SC_MOVE;
+		mPlayerId = -1;
+		mPosX = 0;
+		mPosY = 0;
+	}
+
+	int		mPlayerId;
+	float	mPosX;
+	float	mPosY;
+};
+
+
 
 #pragma pack(pop)
