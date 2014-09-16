@@ -1,4 +1,4 @@
-EasyGameServer
+EasyGameServer (for cocos2dx)
 ==============
 
 NHN NEXT의 첫번째 게임 프로젝트를 위한 교육용 게임 서버 기반 코드 입니다.
