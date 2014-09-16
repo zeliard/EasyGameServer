@@ -5,43 +5,6 @@
 #include "DatabaseJobContext.h"
 #include "DatabaseJobManager.h"
 
-//@{ Handler Helper
-
-typedef void (*HandlerFunc)(ClientSession* session, PacketHeader& pktBase) ;
-
-static HandlerFunc HandlerTable[PKT_MAX];
-
-static void DefaultHandler(ClientSession* session, PacketHeader& pktBase)
-{
-	assert(false);
-	session->Disconnect();
-}
-
-struct InitializeHandlers
-{
-	InitializeHandlers()
-	{
-		for (int i = 0; i < PKT_MAX; ++i)
-			HandlerTable[i] = DefaultHandler;
-	}
-} _init_handlers_;
-
-struct RegisterHandler
-{
-	RegisterHandler(int pktType, HandlerFunc handler)
-	{
-		HandlerTable[pktType] = handler;
-	}
-};
-
-#define REGISTER_HANDLER(PKT_TYPE)	\
-	static void Handler_##PKT_TYPE(ClientSession* session, PacketHeader& pktBase); \
-	static RegisterHandler _register_##PKT_TYPE(PKT_TYPE, Handler_##PKT_TYPE); \
-	static void Handler_##PKT_TYPE(ClientSession* session, PacketHeader& pktBase)
-
-//@}
-
-
 
 bool ClientSession::OnConnect(SOCKADDR_IN* addr)
 {
@@ -114,33 +77,7 @@ void ClientSession::Disconnect()
 }
 
 
-void ClientSession::OnRead(size_t len)
-{
-	mRecvBuffer.Commit(len) ;
 
-	/// 패킷 파싱하고 처리
-	while ( true )
-	{
-		/// 패킷 헤더 크기 만큼 읽어와보기
-		PacketHeader header ;
-		if ( false == mRecvBuffer.Peek((char*)&header, sizeof(PacketHeader)) )
-			return ;
-
-		/// 패킷 완성이 되는가? 
-		if ( mRecvBuffer.GetStoredSize() < header.mSize )
-			return ;
-
-		
-		if (header.mType >= PKT_MAX || header.mType <= PKT_NONE)
-		{
-			Disconnect();
-			return;
-		}
-
-		/// packet dispatch...
-		HandlerTable[header.mType](this, header);
-	}
-}
 
 bool ClientSession::SendRequest(PacketHeader* pkt)
 {
@@ -223,7 +160,6 @@ void ClientSession::OnTick()
 
 		updatePlayer->mPosX = mPosX ;
 		updatePlayer->mPosY = mPosY ;
-		updatePlayer->mPosZ = mPosZ ;
 		strcpy_s(updatePlayer->mComment, "updated_test") ; ///< 일단은 테스트를 위해
 		GDatabaseJobManager->PushDatabaseJobRequest(updatePlayer) ;
 	}
@@ -241,7 +177,7 @@ void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 	{
 		LoadPlayerDataContext* login = dynamic_cast<LoadPlayerDataContext*>(result) ;
 
-		LoginDone(login->mPlayerId, login->mPosX, login->mPosY, login->mPosZ, login->mPlayerName) ;
+		LoginDone(login->mPlayerId, (float)login->mPosX, (float)login->mPosY, login->mPlayerName) ;
 	
 	}
 	else if ( typeInfo == typeid(UpdatePlayerDataContext) )
@@ -258,116 +194,24 @@ void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 void ClientSession::UpdateDone()
 {
 	/// 콘텐츠를 넣기 전까지는 딱히 해줄 것이 없다. 단지 테스트를 위해서..
-	printf("DEBUG: Player[%d] Update Done\n", mPlayerId) ;
+	printf("Player[%d] Update Done\n", mPlayerId) ;
 }
 
 
 
-void ClientSession::LoginDone(int pid, double x, double y, double z, const char* name)
+void ClientSession::LoginDone(int pid, float x, float y, const char* name)
 {
 	LoginResult outPacket ;
 
 	outPacket.mPlayerId = mPlayerId = pid ;
 	outPacket.mPosX = mPosX = x ;
 	outPacket.mPosY = mPosY = y ;
-	outPacket.mPosZ = mPosZ = z ;
 	strcpy_s(mPlayerName, name) ;
 	strcpy_s(outPacket.mName, name) ;
 
 	SendRequest(&outPacket) ;
 
 	mLogon = true ;
-}
-
-///////////////////////////////////////////////////////////
-
-void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
-{
-	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
-	
-	fromClient->DecOverlappedRequest() ;
-
-	if ( !fromClient->IsConnected() )
-		return ;
-
-	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 )
-	{
-		fromClient->Disconnect() ;
-		return ;
-	}
-
-	/// 받은 데이터 처리
-	fromClient->OnRead(cbTransferred) ;
-
-	/// 다시 받기
-	if ( false == fromClient->PostRecv() )
-	{
-		fromClient->Disconnect() ;
-		return ;
-	}
-}
-
-
-void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags)
-{
-	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject ;
-
-	fromClient->DecOverlappedRequest() ;
-
-	if ( !fromClient->IsConnected() )
-		return ;
-
-	/// 에러 발생시 해당 세션 종료
-	if ( dwError || cbTransferred == 0 )
-	{
-		fromClient->Disconnect() ;
-		return ;
-	}
-
-	fromClient->OnWriteComplete(cbTransferred) ;
-
-}
-
-
-//////////////////////////////////////////////////////////////////
-
-
-REGISTER_HANDLER(PKT_CS_LOGIN)
-{
-	LoginRequest inPacket = static_cast<LoginRequest&>(pktBase) ;
-	session->HandleLoginRequest(inPacket);
-}
-
-void ClientSession::HandleLoginRequest(LoginRequest& inPacket)
-{
-	mRecvBuffer.Read((char*)&inPacket, inPacket.mSize);
-
-	/// 로그인은 DB 작업을 거쳐야 하기 때문에 DB 작업 요청한다.
-	LoadPlayerDataContext* newDbJob = new LoadPlayerDataContext(mSocket, inPacket.mPlayerId);
-	GDatabaseJobManager->PushDatabaseJobRequest(newDbJob);
-}
-
-REGISTER_HANDLER(PKT_CS_CHAT)
-{
-	ChatBroadcastRequest inPacket = static_cast<ChatBroadcastRequest&>(pktBase) ;
-	session->HandleChatRequest(inPacket);
-}
-
-void ClientSession::HandleChatRequest(ChatBroadcastRequest& inPacket)
-{
-	mRecvBuffer.Read((char*)&inPacket, inPacket.mSize);
-
-	ChatBroadcastResult outPacket;
-	outPacket.mPlayerId = inPacket.mPlayerId;
-	strcpy_s(outPacket.mName, mPlayerName);
-	strcpy_s(outPacket.mChat, inPacket.mChat);
-
-	/// 채팅은 바로 방송 하면 끝
-	if (!Broadcast(&outPacket))
-	{
-		Disconnect();
-	}
 }
 
 

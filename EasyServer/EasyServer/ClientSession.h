@@ -26,7 +26,7 @@ class ClientSession : public ObjectPool<ClientSession>
 public:
 	ClientSession(SOCKET sock)
 		: mConnected(false), mLogon(false), mSocket(sock), mPlayerId(-1), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
-		, mPosX(0), mPosY(0), mPosZ(0), mDbUpdateCount(0)
+		, mPosX(0), mPosY(0), mDbUpdateCount(0)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
 		memset(mPlayerName, 0, sizeof(mPlayerName)) ;
@@ -34,7 +34,25 @@ public:
 	~ClientSession() {}
 
 
-	
+public:
+
+	int	GetPlayerId() const	{ return mPlayerId; }
+	const char* GetPlayerName() const { return mPlayerName;  }
+	SOCKET GetSocketKey() const { return mSocket;  }
+	void SetPosition(float x, float y) { 	mPosX = x; 	mPosY = y; }
+
+	void	LoginDone(int pid, float x, float y, const char* name);
+	void	UpdateDone();
+
+
+public: 
+
+	template <class PKT_TYPE>
+	bool ParsePacket(PKT_TYPE& pkt)
+	{
+		return mRecvBuffer.Read((char*)&pkt, pkt.mSize);
+	}
+
 	void	OnRead(size_t len) ;
 	void	OnWriteComplete(size_t len) ;
 
@@ -51,29 +69,18 @@ public:
 
 	void	DatabaseJobDone(DatabaseJobContext* result) ;
 
-
 	/// 현재 Send/Recv 요청 중인 상태인지 검사하기 위함
 	void	IncOverlappedRequest()		{ ++mOverlappedRequested ; }
 	void	DecOverlappedRequest()		{ --mOverlappedRequested ; }
 	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
 
-public:
-	void	HandleLoginRequest(LoginRequest& inPacket);
-	void	HandleChatRequest(ChatBroadcastRequest& inPacket);
-
-private:
-
 	bool	SendFlush(); ///< Send요청 중인것들 모아서 보냄
 	void	OnTick() ;
 
-	void	LoginDone(int pid, double x, double y, double z, const char* name) ;
-	void	UpdateDone() ;
-
 
 private:
-	double			mPosX ;
-	double			mPosY ;
-	double			mPosZ ;
+	float			mPosX ;
+	float			mPosY ;
 	char			mPlayerName[MAX_NAME_LEN] ;
 
 private:
@@ -95,8 +102,6 @@ private:
 
 	friend class ClientManager ;
 } ;
-
-
 
 
 void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED lpOverlapped, DWORD dwFlags) ;

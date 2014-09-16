@@ -1,43 +1,95 @@
 ﻿#include "stdafx.h"
 #include "Exception.h"
 #include <DbgHelp.h>
+#include <TlHelp32.h>
+#include <strsafe.h>
 
+
+#define MAX_BUFF_SIZE 1024
+
+void MakeDump(EXCEPTION_POINTERS* e)
+{
+	TCHAR tszFileName[MAX_BUFF_SIZE] = { 0 };
+	SYSTEMTIME stTime = { 0 };
+	GetSystemTime(&stTime);
+	StringCbPrintf(tszFileName,
+		_countof(tszFileName),
+		_T("%s_%4d%02d%02d_%02d%02d%02d.dmp"),
+		_T("EasyGameServerDump"),
+		stTime.wYear,
+		stTime.wMonth,
+		stTime.wDay,
+		stTime.wHour,
+		stTime.wMinute,
+		stTime.wSecond);
+
+	HANDLE hFile = CreateFile(tszFileName, GENERIC_WRITE, FILE_SHARE_READ, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return;
+
+	MINIDUMP_EXCEPTION_INFORMATION exceptionInfo;
+	exceptionInfo.ThreadId = GetCurrentThreadId();
+	exceptionInfo.ExceptionPointers = e;
+	exceptionInfo.ClientPointers = FALSE;
+
+	MiniDumpWriteDump(
+		GetCurrentProcess(),
+		GetCurrentProcessId(),
+		hFile,
+		MINIDUMP_TYPE(MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory | MiniDumpWithFullMemory),
+		e ? &exceptionInfo : NULL,
+		NULL,
+		NULL);
+
+	if (hFile)
+	{
+		CloseHandle(hFile);
+		hFile = NULL;
+	}
+
+}
 
 LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* exceptionInfo)
 {
 	if ( IsDebuggerPresent() )
 		return EXCEPTION_CONTINUE_SEARCH ;
 
+	THREADENTRY32 te32;
+	DWORD myThreadId = GetCurrentThreadId();
+	DWORD myProcessId = GetCurrentProcessId();
+
+	HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (hThreadSnap != INVALID_HANDLE_VALUE)
+	{
+		te32.dwSize = sizeof(THREADENTRY32);
+
+		if (Thread32First(hThreadSnap, &te32))
+		{
+			do
+			{
+				/// 내 프로세스 내의 스레드중 나 자신 스레드만 빼고 멈추게..
+				if (te32.th32OwnerProcessID == myProcessId && te32.th32ThreadID != myThreadId)
+				{
+					HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, te32.th32ThreadID);
+					if (hThread)
+					{
+						SuspendThread(hThread);
+					}
+				}
+
+			} while (Thread32Next(hThreadSnap, &te32));
+
+		}
+
+		CloseHandle(hThreadSnap);
+	}
+
 
 	/// dump file 남기자.
+	MakeDump(exceptionInfo);
 
-	HANDLE hFile = CreateFileA("EasyServer_minidump.dmp", GENERIC_READ | GENERIC_WRITE, 
-		0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL ) ; 
+	/// 여기서 쫑
+	ExitProcess(1);
 
-	if ( ( hFile != NULL ) && ( hFile != INVALID_HANDLE_VALUE ) ) 
-	{
-		MINIDUMP_EXCEPTION_INFORMATION mdei ; 
-
-		mdei.ThreadId           = GetCurrentThreadId() ; 
-		mdei.ExceptionPointers  = exceptionInfo ; 
-		mdei.ClientPointers     = FALSE ; 
-
-
-		MINIDUMP_TYPE mdt = (MINIDUMP_TYPE)(MiniDumpWithPrivateReadWriteMemory | 
-			MiniDumpWithDataSegs | MiniDumpWithHandleData | MiniDumpWithFullMemoryInfo | 
-			MiniDumpWithThreadInfo | MiniDumpWithUnloadedModules ) ; 
-
-		MiniDumpWriteDump( GetCurrentProcess(), GetCurrentProcessId(), 
-			hFile, mdt, (exceptionInfo != 0) ? &mdei : 0, 0, NULL ) ; 
-
-		CloseHandle( hFile ) ; 
-
-	}
-	else 
-	{
-		printf("CreateFile failed. Error: %u \n", GetLastError()) ; 
-	}
-
-	return EXCEPTION_EXECUTE_HANDLER  ;
-	
+	return EXCEPTION_EXECUTE_HANDLER ;	
 }

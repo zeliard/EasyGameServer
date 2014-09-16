@@ -41,9 +41,10 @@ struct LoadPlayerDataContext : public DatabaseJobContext, public ObjectPool<Load
 
 	int		mPlayerId ;
 
+	///참고: 현재 DB에서는 xyz좌표를 double로 쓰고 있지만, 게임에서는 float로 xy만 쓰고 있음
 	double	mPosX ;
 	double	mPosY ;
-	double	mPosZ ;
+	double	mPosZ ; 
 	char	mPlayerName[MAX_NAME_LEN] ;
 
 } ;

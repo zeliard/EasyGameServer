@@ -5,25 +5,22 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="PacketDefine">
-      <UniqueIdentifier>{3cfbe6f1-5834-4652-a3f4-358ccb895128}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{002996bc-5f49-4034-9846-d804baed220a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{3cfbe6f1-5834-4652-a3f4-358ccb895128}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{25fda20e-051c-4cae-8314-1442428c9b70}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>SourceCode</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>SourceCode</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\PacketType.h">
-      <Filter>PacketDefine</Filter>
+      <Filter>Packet</Filter>
     </ClInclude>
     <ClInclude Include="ClientSession.h">
       <Filter>SourceCode</Filter>
@@ -33,12 +30,6 @@
     </ClInclude>
     <ClInclude Include="DatabaseJobManager.h">
       <Filter>SourceCode</Filter>
-    </ClInclude>
-    <ClInclude Include="EasyServer.h">
-      <Filter>SourceCode</Filter>
-    </ClInclude>
-    <ClInclude Include="SPSCQueue.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="CircularBuffer.h">
       <Filter>Utils</Filter>
@@ -55,29 +46,32 @@
     <ClInclude Include="DbHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="SQLStatement.h">
-      <Filter>SourceCode</Filter>
-    </ClInclude>
     <ClInclude Include="ObjectPool.h">
       <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="DatabaseJobContext.h">
-      <Filter>SourceCode</Filter>
-    </ClInclude>
-    <ClInclude Include="Config.h">
-      <Filter>SourceCode</Filter>
     </ClInclude>
     <ClInclude Include="ProducerConsumerQueue.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="SQLStatement.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="DatabaseJobContext.h">
+      <Filter>SourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="EasyServer.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>Main</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>SourceCode</Filter>
-    </ClCompile>
-    <ClCompile Include="EasyServer.cpp">
-      <Filter>SourceCode</Filter>
-    </ClCompile>
     <ClCompile Include="ClientSession.cpp">
       <Filter>SourceCode</Filter>
     </ClCompile>
@@ -101,6 +95,15 @@
     </ClCompile>
     <ClCompile Include="DatabaseJobContext.cpp">
       <Filter>SourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="EasyServer.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketHandling.cpp">
+      <Filter>Packet</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
