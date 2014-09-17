@@ -62,7 +62,8 @@ TcpClient* TcpClient::getInstance()
 			return nullptr;
 
 		/// for test connect
-		s_TcpClient->connect("127.0.0.1", 9001);
+		//s_TcpClient->connect("127.0.0.1", 9001);
+		s_TcpClient->connect("10.73.45.147", 9001);
 
 	}
 		
@@ -214,6 +215,8 @@ void TcpClient::loginRequest()
 {
 	if (m_loginId > 0)
 		return;
+
+	srand(time(NULL));
 
 	/// 대략 아래의 id로 로그인 테스트..
 	LoginRequest sendData;
