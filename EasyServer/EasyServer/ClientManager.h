@@ -10,7 +10,7 @@ struct DatabaseJobContext ;
 class ClientManager
 {
 public:
-	ClientManager() : mLastGCTick(0), mLastClientWorkTick(0)
+	ClientManager() : mLastGCTick(0)
 	{}
 
 	ClientSession* CreateClient(SOCKET sock) ;
@@ -31,7 +31,6 @@ private:
 
 private:
 	void CollectGarbageSessions() ;
-	void ClientPeriodWork() ;
 	void DispatchDatabaseJobResults() ;
 	
 
@@ -40,7 +39,6 @@ private:
 	ClientList	mClientList ;
 
 	DWORD		mLastGCTick ;
-	DWORD		mLastClientWorkTick ;
 } ;
 
 extern ClientManager* GClientManager ;

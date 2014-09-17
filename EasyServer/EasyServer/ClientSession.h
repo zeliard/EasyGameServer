@@ -6,8 +6,8 @@
 #include "..\..\PacketType.h"
 #include "CircularBuffer.h"
 #include "ObjectPool.h"
+#include "RefCountable.h"
 
-#define BUFSIZE	(1024*10)
 
 class ClientSession ;
 class ClientManager ;
@@ -21,31 +21,31 @@ struct OverlappedIO : public OVERLAPPED
 	ClientSession* mObject ;
 } ;
 
-class ClientSession : public ObjectPool<ClientSession>
+class ClientSession : public RefCountable, public ObjectPool<ClientSession>
 {
 public:
 	ClientSession(SOCKET sock)
-		: mConnected(false), mLogon(false), mSocket(sock), mPlayerId(-1), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE), mOverlappedRequested(0)
-		, mPosX(0), mPosY(0), mDbUpdateCount(0)
+		: mConnected(false), mLogon(false), mSocket(sock), mPlayerId(-1), mSendBuffer(BUFSIZE), mRecvBuffer(BUFSIZE)
+		, mPosX(0), mPosY(0)
 	{
 		memset(&mClientAddr, 0, sizeof(SOCKADDR_IN)) ;
 		memset(mPlayerName, 0, sizeof(mPlayerName)) ;
 	}
-	~ClientSession() {}
-
+	virtual ~ClientSession() {}
 
 public:
-
 	int	GetPlayerId() const	{ return mPlayerId; }
 	const char* GetPlayerName() const { return mPlayerName;  }
 	SOCKET GetSocketKey() const { return mSocket;  }
-	void SetPosition(float x, float y) { 	mPosX = x; 	mPosY = y; }
+	void SetPosition(float x, float y) { mPosX = x; mPosY = y; }
 
 	void	LoginDone(int pid, float x, float y, const char* name);
 	void	UpdateDone();
 
-
 public: 
+	bool	IsConnected() const { return mConnected; }
+	void	OnTick();
+	void	OnDbUpdate(); ///< 주기적으로 데이터베이스에 업데이트
 
 	template <class PKT_TYPE>
 	bool ParsePacket(PKT_TYPE& pkt)
@@ -65,18 +65,8 @@ public:
 
 	void	Disconnect() ;
 
-	bool	IsConnected() const { return mConnected ; }
-
-	void	DatabaseJobDone(DatabaseJobContext* result) ;
-
-	/// 현재 Send/Recv 요청 중인 상태인지 검사하기 위함
-	void	IncOverlappedRequest()		{ ++mOverlappedRequested ; }
-	void	DecOverlappedRequest()		{ --mOverlappedRequested ; }
-	bool	DoingOverlappedOperation() const { return mOverlappedRequested > 0 ; }
-
 	bool	SendFlush(); ///< Send요청 중인것들 모아서 보냄
-	void	OnTick() ;
-
+	void	DatabaseJobDone(DatabaseJobContext* result);
 
 private:
 	float			mPosX ;
@@ -96,9 +86,6 @@ private:
 
 	OverlappedIO	mOverlappedSend ;
 	OverlappedIO	mOverlappedRecv ;
-	int				mOverlappedRequested ;
-
-	int				mDbUpdateCount ; ///< DB에 주기적으로 업데이트 하기 위한 변수
 
 	friend class ClientManager ;
 } ;

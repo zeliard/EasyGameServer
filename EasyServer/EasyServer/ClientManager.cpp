@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "EasyServer.h"
 #include "..\..\PacketType.h"
+#include "ThreadLocal.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
 #include "DatabaseJobContext.h"
@@ -44,13 +45,6 @@ void ClientManager::OnPeriodWork()
 		mLastGCTick = currTick ;
 	}
 
-	/// 접속된 클라이언트 세션별로 주기적으로 해줘야 하는 일 (주기는 알아서 정하면 됨 - 지금은 1초로 ㅎㅎ)
-	if ( currTick - mLastClientWorkTick >= 1000 )
-	{
-		ClientPeriodWork() ;
-		mLastClientWorkTick = currTick ;
-	}
-
 	/// 처리 완료된 DB 작업들 각각의 Client로 dispatch
 	DispatchDatabaseJobResults() ;
 }
@@ -65,7 +59,7 @@ void ClientManager::CollectGarbageSessions()
 		{
 			ClientSession* client = it.second ;
 
-			if ( false == client->IsConnected() && false == client->DoingOverlappedOperation() )
+			if ( false == client->IsConnected() && 0 == client->GetRefCount() )
 				disconnectedSessions.push_back(client) ;
 		}
 	) ;
@@ -79,16 +73,6 @@ void ClientManager::CollectGarbageSessions()
 		delete client ;
 	}
 
-}
-
-void ClientManager::ClientPeriodWork()
-{
-	/// FYI: C++ 11 스타일의 루프
-	for (auto& it : mClientList)
-	{
-		ClientSession* client = it.second ;
-		client->OnTick() ;
-	}
 }
 
 void ClientManager::DispatchDatabaseJobResults()

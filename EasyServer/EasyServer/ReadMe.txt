@@ -1,6 +1,8 @@
-﻿# HOMEWORK
+﻿# HOMEWORK TO DO
 
-1. network layer와 contents layer 분리할 것
+- ClientSession에서 Player Contents 부분 분리할 것
+  (network layer와 contents layer 분리)
 
-2. DoTimer (RunActionAfter) 
+
+
 

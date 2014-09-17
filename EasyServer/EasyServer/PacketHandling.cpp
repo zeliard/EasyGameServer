@@ -43,7 +43,7 @@ void CALLBACK RecvCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject;
 
-	fromClient->DecOverlappedRequest();
+	fromClient->DecRefCount();
 
 	if (!fromClient->IsConnected())
 		return;
@@ -71,7 +71,7 @@ void CALLBACK SendCompletion(DWORD dwError, DWORD cbTransferred, LPWSAOVERLAPPED
 {
 	ClientSession* fromClient = static_cast<OverlappedIO*>(lpOverlapped)->mObject;
 
-	fromClient->DecOverlappedRequest();
+	fromClient->DecRefCount();
 
 	if (!fromClient->IsConnected())
 		return;
@@ -102,7 +102,7 @@ void ClientSession::OnRead(size_t len)
 			return;
 
 		/// 패킷 완성이 되는가? 
-		if (mRecvBuffer.GetStoredSize() < header.mSize)
+		if (mRecvBuffer.GetStoredSize() < (size_t) header.mSize)
 			return;
 
 

@@ -4,16 +4,15 @@
 #include "Config.h"
 #include "..\..\PacketType.h"
 
+#include "ThreadLocal.h"
 #include "Exception.h"
+#include "Scheduler.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
 #include "DatabaseJobManager.h"
 #include "DbHelper.h"
 
 #pragma comment(lib,"ws2_32.lib")
-
-
-__declspec(thread) int LThreadType = -1 ;
 
 typedef ProducerConsumerQueue<SOCKET, 100> PendingAcceptList;
 
@@ -73,6 +72,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	if (hDbThread == NULL)
 		return -1 ;
 
+	printf("EasyGameServer Started...\n");
+
 	/// accept loop
 	while ( true )
 	{
@@ -102,6 +103,7 @@ int _tmain(int argc, _TCHAR* argv[])
 unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 {
 	LThreadType = THREAD_CLIENT ;
+	LScheduler = new Scheduler;
 
 	PendingAcceptList* pAcceptList = (PendingAcceptList*)lpParam ;
 
@@ -112,7 +114,7 @@ unsigned int WINAPI ClientHandlingThread( LPVOID lpParam )
 
 	LARGE_INTEGER liDueTime ;
 	liDueTime.QuadPart = -10000000 ; ///< 1초 후부터 동작
-	if ( !SetWaitableTimer(hTimer, &liDueTime, 100, TimerProc, NULL, TRUE) )
+	if (!SetWaitableTimer(hTimer, &liDueTime, APC_TIMER_INTERVAL, TimerProc, NULL, TRUE))
 		return -1 ;
 		
 	while ( true )
@@ -162,5 +164,8 @@ void CALLBACK TimerProc(LPVOID lpArg, DWORD dwTimerLowValue, DWORD dwTimerHighVa
 {
 	assert( LThreadType == THREAD_CLIENT ) ;
 
+	LScheduler->DoTasks(); ///< 주기적으로 task 처리
+	
 	GClientManager->OnPeriodWork() ;
+
 }

@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+#include "Scheduler.h"
 #include "ClientSession.h"
 #include "..\..\PacketType.h"
 #include "ClientManager.h"
@@ -46,7 +47,7 @@ bool ClientSession::PostRecv()
 			return false ;
 	}
 
-	IncOverlappedRequest() ;
+	IncRefCount() ;
 
 	return true ;
 }
@@ -115,16 +116,14 @@ bool ClientSession::SendFlush()
 	memset(&mOverlappedSend, 0, sizeof(OverlappedIO));
 	mOverlappedSend.mObject = this;
 
-	// 비동기 입출력 시작
+	/// 비동기 입출력 시작
 	if (SOCKET_ERROR == WSASend(mSocket, &buf, 1, &sendbytes, flags, &mOverlappedSend, SendCompletion))
 	{
 		if (WSAGetLastError() != WSA_IO_PENDING)
 			return false;
 	}
 
-	IncOverlappedRequest();
-
-	//assert(buf.len == sendbytes);
+	IncRefCount();
 
 	return true;
 }
@@ -150,21 +149,32 @@ bool ClientSession::Broadcast(PacketHeader* pkt)
 
 void ClientSession::OnTick()
 {
+	if (!IsConnected())
+		return;
+
 	/// 클라별로 주기적으로 해야될 일은 여기에
 
-	/// 특정 주기로 DB에 위치 저장
-	if ( ++mDbUpdateCount == PLAYER_DB_UPDATE_CYCLE )
-	{
-		mDbUpdateCount = 0 ;
-		UpdatePlayerDataContext* updatePlayer = new UpdatePlayerDataContext(mSocket, mPlayerId) ;
 
-		updatePlayer->mPosX = mPosX ;
-		updatePlayer->mPosY = mPosY ;
-		strcpy_s(updatePlayer->mComment, "updated_test") ; ///< 일단은 테스트를 위해
-		GDatabaseJobManager->PushDatabaseJobRequest(updatePlayer) ;
-	}
 	
+	CallFuncAfter(PLAYER_HEART_BEAT, this, &ClientSession::OnTick);
 }
+
+void ClientSession::OnDbUpdate()
+{
+	if (!IsConnected())
+		return;
+
+	UpdatePlayerDataContext* updatePlayer = new UpdatePlayerDataContext(mSocket, mPlayerId) ;
+	 
+	updatePlayer->mPosX = mPosX ;
+	updatePlayer->mPosY = mPosY ;
+	strcpy_s(updatePlayer->mComment, "updated_test") ; ///< 일단은 테스트를 위한 코멘트
+	GDatabaseJobManager->PushDatabaseJobRequest(updatePlayer) ;
+
+	CallFuncAfter(PLAYER_DB_UPDATE_INTERVAL, this, &ClientSession::OnDbUpdate);
+
+}
+
 
 void ClientSession::DatabaseJobDone(DatabaseJobContext* result)
 {
@@ -212,6 +222,12 @@ void ClientSession::LoginDone(int pid, float x, float y, const char* name)
 	SendRequest(&outPacket) ;
 
 	mLogon = true ;
+
+	/// heartbeat gogo
+	OnTick();
+
+	/// first db update gogo
+	OnDbUpdate();
 }
 
 

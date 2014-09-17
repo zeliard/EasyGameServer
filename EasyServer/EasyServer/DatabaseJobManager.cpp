@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "EasyServer.h"
+#include "ThreadLocal.h"
 #include "DatabaseJobContext.h"
 #include "DatabaseJobManager.h"
 #include "DbHelper.h"
