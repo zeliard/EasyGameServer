@@ -3,7 +3,7 @@ EasyGameServer (for cocos2dx)
 
 NHN NEXT의 첫번째 게임 프로젝트를 위한 교육용 게임 서버 기반 코드 입니다.
 
-Windows의 Overlapped I/O를 이용한 single-thread 기반의 asynchronous non-blocking 방식의 TCP 서버입니다.
+Windows의 Overlapped I/O를 이용한 single I/O thread 기반의 asynchronous non-blocking 방식의 TCP 서버입니다.
 (동시 접속 10000세션 무한 echo-back 테스트에서도 별 무리 없이 가동되었습니다.)
 
 EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다. 
@@ -37,15 +37,16 @@ EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다.
 
 8. Thread local storage의 개념
 
-9. 그 이외 C++ 11의 몇몇 특징 사용 방법
+9. std::bind를 응용한 Task 스케줄링 방법 
+
+10. 참조 카운팅 기법을 활용한 객체의 생명 주기 관리 방법
 
 
 
 ## 기대했을 수 있지만, 여기에서 배울 수 없는 것
 
 1. multi-thread 기반의 IOCP를 이용한 서버 만들기 방법
-2. 스마트 포인터 등을 통한 객체의 생명 관리
-3. 고성능 서버 제작을 위한 각종 튜닝 기법들
-4. 암호화, 해킹방어 등과 같은 각종 보안 기법들
-5. 게임 콘텐츠에 관련된 각종 구현 방법들
+2. 고성능 서버 제작을 위한 각종 튜닝 기법들
+3. 암호화, 해킹방어 등과 같은 각종 보안 기법들
+4. 게임 콘텐츠에 관련된 각종 구현 방법들
 
