@@ -61,10 +61,10 @@ TcpClient* TcpClient::getInstance()
 		if (false == s_TcpClient->initialize())
 			return nullptr;
 
-		/// for test connect
-		//s_TcpClient->connect("127.0.0.1", 9001);
-		s_TcpClient->connect("10.73.45.147", 9001);
+		std::string ipaddr = cocos2d::UserDefault::getInstance()->getStringForKey("ipaddr", std::string("localhost"));
+		int port = cocos2d::UserDefault::getInstance()->getIntegerForKey("port", 9001);
 
+		s_TcpClient->connect(ipaddr.c_str(), port);
 	}
 		
 
