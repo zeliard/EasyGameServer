@@ -12,10 +12,7 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <deque>
 #include <iostream>
-#include <list>
-#include <set>
 #include <string>
 
 // TODO: reference additional headers your program requires here

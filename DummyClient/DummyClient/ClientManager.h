@@ -15,10 +15,7 @@ public:
 		: mIoService(io_service), mTotalDummyCount(total)
 	{}
 
-
-
 	void Start();
-	
 
 private:
 	boost::asio::io_service& mIoService;
@@ -26,5 +23,4 @@ private:
 	std::vector<boost::shared_ptr<ClientSession>> mClientList;
 
 	int mTotalDummyCount;
-
 };

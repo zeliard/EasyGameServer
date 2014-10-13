@@ -54,9 +54,9 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		ClientManager* server = new ClientManager(io_service, MAX_CONNECTION);
+		ClientManager* mgr = new ClientManager(io_service, MAX_CONNECTION);
 
-		server->Start(); ///< block here
+		mgr->Start(); ///< block here
 	}
 	catch (std::exception& e)
 	{
