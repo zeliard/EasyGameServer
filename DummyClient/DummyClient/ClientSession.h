@@ -16,7 +16,7 @@ using boost::asio::ip::tcp;
 #define RECV_BUF_SIZE 4096
 
 
-class ClientSession : public boost::enable_shared_from_this < ClientSession >
+class ClientSession : public boost::enable_shared_from_this<ClientSession>
 {
 public:
 	ClientSession(boost::asio::io_service& io_service, int pid) 
