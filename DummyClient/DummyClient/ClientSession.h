@@ -6,6 +6,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <chrono>
 
 #include "../../PacketType.h"
 
@@ -18,8 +20,12 @@ class ClientSession : public boost::enable_shared_from_this < ClientSession >
 {
 public:
 	ClientSession(boost::asio::io_service& io_service, int pid) 
-		: mSocket(io_service), mPlayerId(pid)
-	{}
+		: mSocket(io_service), mTimer(io_service), mPlayerId(pid), mLogon(false)
+	{
+		srand((unsigned)time(0));
+		mPosX = static_cast<float>(rand() % 100 + 50);
+		mPosY = static_cast<float>(rand() % 100 + 50);
+	}
 
 	virtual ~ClientSession()
 	{}
@@ -70,6 +76,8 @@ public:
 
 	void HandleReadPayload(const boost::system::error_code& error);
 
+	void OnTick();
+
 	template <class PKT_TYPE>
 	void SendPacket(PKT_TYPE& pkt)
 	{
@@ -77,15 +85,27 @@ public:
 		boost::asio::write(mSocket, boost::asio::buffer((char*)&pkt, pkt.mSize));
 	}
 
-
+	template <class F, class... Args>
+	void DoTimer(uint32_t after, F memfunc, Args&&... args)
+	{
+		auto bind = boost::bind(memfunc, shared_from_this(), std::forward<Args>(args)...);
+		mTimer.expires_from_now(std::chrono::milliseconds(after));
+		mTimer.async_wait(bind);
+	}
 
 
 private:
 	tcp::socket mSocket;
 	std::array<uint8_t, RECV_BUF_SIZE> mReadBuf;
 
-	int mPlayerId;
+	boost::asio::steady_timer mTimer;
+	
+	bool mLogon;
 
+private:
+	int mPlayerId;
+	float mPosX;
+	float mPosY;
 };
 
 

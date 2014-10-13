@@ -25,7 +25,7 @@ char* GetCommandOption(char** begin, char** end, const std::string& comparand)
 
 int main(int argc, char* argv[])
 {
-	MAX_CONNECTION = 1;
+	MAX_CONNECTION = 100;
 	strcpy_s(CONNECT_ADDR, "127.0.0.1");
 	CONNECT_PORT = 9001;
 
@@ -35,7 +35,6 @@ int main(int argc, char* argv[])
 	}
 	else
 	{
-
 		char* ipAddr = GetCommandOption(argv, argv + argc, "--ip");
 		char* port = GetCommandOption(argv, argv + argc, "--port");
 		char* session = GetCommandOption(argv, argv + argc, "--session");
@@ -53,11 +52,16 @@ int main(int argc, char* argv[])
 
 	boost::asio::io_service io_service;
 
-	
-	ClientManager* server = new ClientManager(io_service, MAX_CONNECTION);
+	try
+	{
+		ClientManager* server = new ClientManager(io_service, MAX_CONNECTION);
 
-	server->Start(); ///< block here
-
+		server->Start(); ///< block here
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
 
 
 	return 0;
