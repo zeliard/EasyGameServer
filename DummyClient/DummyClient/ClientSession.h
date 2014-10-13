@@ -23,8 +23,8 @@ public:
 		: mSocket(io_service), mTimer(io_service), mPlayerId(pid), mLogon(false)
 	{
 		srand((unsigned)time(0));
-		mPosX = static_cast<float>(rand() % 100 + 50);
-		mPosY = static_cast<float>(rand() % 100 + 50);
+		mPosX = static_cast<float>(rand() % 500 + 200);
+		mPosY = static_cast<float>(rand() % 300 + 100);
 	}
 
 	virtual ~ClientSession()

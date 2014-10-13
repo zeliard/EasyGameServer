@@ -81,8 +81,8 @@ void ClientSession::OnTick()
 		/// 80% È®·ü·Î random walking
 		MoveRequest sendPkt;
 		sendPkt.mPlayerId = mPlayerId;
-		sendPkt.mPosX = mPosX + rand() % 20 - 10;
-		sendPkt.mPosY = mPosY + rand() % 20 - 10;
+		sendPkt.mPosX = mPosX + rand() % 100 - 50;
+		sendPkt.mPosY = mPosY + rand() % 60 - 30;
 		SendPacket(sendPkt);
 	}
 
