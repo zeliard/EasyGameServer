@@ -46,8 +46,7 @@ bool TcpClient::initialize()
 		return false;
 
 	/// thread start
-	auto t = std::thread(CC_CALLBACK_0(TcpClient::networkThread, this));
-	t.detach();
+	std::thread(CC_CALLBACK_0(TcpClient::networkThread, this));
 
 	return true;
 }
@@ -98,7 +97,7 @@ bool TcpClient::connect(const char* serverAddr, int port)
 	//u_long arg = 1;
 	//ioctlsocket(mSocket, FIONBIO, &arg);
 
-	/// nagle ¾Ë°í¸®Áò ²ô±â
+	/// nagle ì•Œê³ ë¦¬ì¦˜ ë„ê¸°
 	int opt = 1;
 	setsockopt(m_sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&opt, sizeof(int));
 
@@ -140,7 +139,7 @@ void TcpClient::networkThread()
 
 		if (!m_recvBuffer.Write(inBuf, n))
 		{
-			/// ¹öÆÛ ²ËÃ¡´Ù. 
+			/// ë²„í¼ ê½‰ì°¼ë‹¤. 
 			assert(false);
 		}
 
@@ -152,7 +151,7 @@ void TcpClient::processPacket()
 {
 	auto scheduler = cocos2d::Director::getInstance()->getScheduler();
 
-	/// ÆĞÅ¶À» ÆÄ½ÌÇØ¼­ ¿Ï¼ºµÇ´Â ÆĞÅ¶ÀÌ ÀÖÀ¸¸é, ÇØ´ç Äİ¹éÀ» ºÒ·¯ÁØ´Ù. 
+	/// íŒ¨í‚·ì„ íŒŒì‹±í•´ì„œ ì™„ì„±ë˜ëŠ” íŒ¨í‚·ì´ ìˆìœ¼ë©´, í•´ë‹¹ ì½œë°±ì„ ë¶ˆëŸ¬ì¤€ë‹¤. 
 	while (true)
 	{
 		PacketHeader header;
@@ -218,7 +217,7 @@ void TcpClient::loginRequest()
 
 	srand(time(NULL));
 
-	/// ´ë·« ¾Æ·¡ÀÇ id·Î ·Î±×ÀÎ Å×½ºÆ®..
+	/// ëŒ€ëµ ì•„ë˜ì˜ idë¡œ ë¡œê·¸ì¸ í…ŒìŠ¤íŠ¸..
 	LoginRequest sendData;
 	sendData.mPlayerId = 1000 + rand() % 101;
 
