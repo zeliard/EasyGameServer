@@ -8,12 +8,12 @@ Scheduler::Scheduler()
 }
 
 
-void Scheduler::PushTask(RefCountable* owner, const Task& task, uint32_t after)
+void Scheduler::PushTask(RefCountable* owner, Task&& task, uint32_t after)
 {
 	int64_t dueTimeTick = after + mCurrentTick;
 
 	owner->IncRefCount(); ///< for scheduler
-	mTaskQueue.push(JobElement(owner, task, dueTimeTick));
+	mTaskQueue.push(JobElement(owner, std::move(task), dueTimeTick));
 }
 
 

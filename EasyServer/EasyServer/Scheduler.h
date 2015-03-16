@@ -9,8 +9,8 @@ typedef std::function<void()> Task;
 
 struct JobElement
 {
-	JobElement(RefCountable* owner, const Task& task, int64_t execTick)
-		: mOwner(owner), mTask(task), mExecutionTick(execTick)
+	JobElement(RefCountable* owner, Task&& task, int64_t execTick)
+		: mOwner(owner), mTask(std::move(task)), mExecutionTick(execTick)
 	{}
 
 	RefCountable* mOwner;
@@ -35,7 +35,7 @@ public:
 
 	Scheduler();
 
-	void PushTask(RefCountable* owner, const Task& task, uint32_t after);
+	void PushTask(RefCountable* owner, Task&& task, uint32_t after);
 
 	void DoTasks();
 
@@ -49,7 +49,6 @@ template <class T, class F, class... Args>
 void CallFuncAfter(uint32_t after, T instance, F memfunc, Args&&... args)
 {
 	static_assert(true == std::is_convertible<T, RefCountable*>::value, "only allowed when RefCountable*");
-
-	auto bind = std::bind(memfunc, instance, std::forward<Args>(args)...);
-	LScheduler->PushTask(static_cast<RefCountable*>(instance), bind, after);
+	
+	LScheduler->PushTask(static_cast<RefCountable*>(instance), std::bind(memfunc, instance, std::forward<Args>(args)...), after);
 }
