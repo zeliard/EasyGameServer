@@ -11,7 +11,7 @@ static HandlerFunc HandlerTable[PKT_MAX];
 
 static void DefaultHandler(ClientSession* session)
 {
-	printf("[DEBUG] Invalid packet handler", session->GetPlayerId());
+	printf("[DEBUG] Invalid packet handler, PlayerId: %d\n", session->GetPlayerId());
 	session->Disconnect();
 }
 
@@ -108,7 +108,7 @@ void ClientSession::OnRead(size_t len)
 
 		if (header.mType >= PKT_MAX || header.mType <= PKT_NONE)
 		{
-			printf("[DEBUG] Invalid packet type", GetPlayerId());
+			printf("[DEBUG] Invalid packet type, PlayerID: %d\n", GetPlayerId());
 			Disconnect();
 			return;
 		}
@@ -124,7 +124,7 @@ REGISTER_HANDLER(PKT_CS_LOGIN)
 	LoginRequest inPacket;
 	if (false == session->ParsePacket(inPacket))
 	{
-		printf("[DEBUG] packet parsing error", inPacket.mType);
+		printf("[DEBUG] packet parsing error, Type: %d\n", inPacket.mType);
 		return;
 	}
 
@@ -138,13 +138,13 @@ REGISTER_HANDLER(PKT_CS_CHAT)
 	ChatBroadcastRequest inPacket;
 	if (false == session->ParsePacket(inPacket))
 	{
-		printf("[DEBUG] packet parsing error", inPacket.mType);
+		printf("[DEBUG] packet parsing error, Type: %d\n", inPacket.mType);
 		return;
 	}
 
 	if (inPacket.mPlayerId != session->GetPlayerId())
 	{
-		printf("[DEBUG] PKT_CS_CHAT: invalid player ID", session->GetPlayerId());
+		printf("[DEBUG] PKT_CS_CHAT: invalid player ID: %d\n", session->GetPlayerId());
 		return;
 	}
 
@@ -168,13 +168,13 @@ REGISTER_HANDLER(PKT_CS_MOVE)
 	MoveRequest inPacket;
 	if (false == session->ParsePacket(inPacket))
 	{
-		printf("[DEBUG] packet parsing error", inPacket.mType);
+		printf("[DEBUG] packet parsing error, Type: %d\n", inPacket.mType);
 		return;
 	}
 
 	if (inPacket.mPlayerId != session->GetPlayerId())
 	{
-		printf("[DEBUG] PKT_CS_MOVE: invalid player ID", session->GetPlayerId());
+		printf("[DEBUG] PKT_CS_MOVE: invalid player ID: %d\n", session->GetPlayerId());
 		return;
 	}
 
