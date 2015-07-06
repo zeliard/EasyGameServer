@@ -52,6 +52,3 @@ EasyGameServer는 기본적으로 3개의 thread로 구성 됩니다.
 3. 암호화, 해킹방어 등과 같은 각종 보안 기법들
 4. 게임 콘텐츠에 관련된 각종 구현 방법들
 
-## Branch for Linux (new!)
-
-* [EasyGameServerLinux](https://github.com/zeliard/EasyGameServer/tree/linux)
