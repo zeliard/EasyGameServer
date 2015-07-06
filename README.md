@@ -6,4 +6,4 @@ This is a game server (base framework) which supports real-time/stateful games u
 
 * [Linux Version](https://github.com/zeliard/EasyGameServer/tree/linux)
 * [Windows Version](https://github.com/zeliard/EasyGameServer/tree/windows)
- * Same with master branch
+ * Same with the master branch
