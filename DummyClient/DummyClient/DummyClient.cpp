@@ -5,6 +5,7 @@
 #include "DummyClient.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
+#include <boost/make_unique.hpp>
 
 /// config values
 int MAX_CONNECTION = 0;
@@ -54,7 +55,7 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		ClientManager* mgr = new ClientManager(io_service, MAX_CONNECTION);
+		auto mgr = boost::make_unique<ClientManager>(io_service, MAX_CONNECTION);
 
 		mgr->Start(); ///< block here
 	}

@@ -2,6 +2,7 @@
 #include "DummyClient.h"
 #include "ClientSession.h"
 #include "ClientManager.h"
+#include <boost/make_shared.hpp>
 
 void ClientManager::Start()
 {
@@ -9,7 +10,7 @@ void ClientManager::Start()
 
 	for (int i = 0; i < mTotalDummyCount; ++i)
 	{
-		boost::shared_ptr<ClientSession> newClient(new ClientSession(mIoService, START_PLAYER_ID + i));
+		boost::shared_ptr<ClientSession> newClient = boost::make_shared<ClientSession>(mIoService, START_PLAYER_ID + i);
 		newClient->Connect(serv);
 		mClientList.push_back(newClient);
 	}
